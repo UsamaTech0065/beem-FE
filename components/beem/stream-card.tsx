@@ -22,7 +22,10 @@ export function StreamCard({ stream, priority = false }: Props) {
         src={stream.thumbnailUrl ?? FALLBACK_THUMB}
         alt={`${stream.host.displayName} live stream`}
         fill
-        priority={priority}
+        // Eager rather than `priority`: priority also preloads, and in dev the
+        // preload can finish before the card's CSS lands, which trips a false
+        // "height 0" warning from next/image.
+        loading={priority ? 'eager' : undefined}
         sizes="(max-width: 760px) 50vw, (max-width: 1180px) 33vw, 250px"
         className="stream-image"
       />
