@@ -1,4 +1,4 @@
-import type { Category, LiveFollowedEntry, Page, StreamCard, CurrentUser } from './api-types'
+import type { Category, CreatorStats, CurrentUser, Fan, LiveFollowedEntry, Page, StreamCard } from './api-types'
 import { demoCategories, demoLivePage } from './demo-data'
 
 /**
@@ -121,4 +121,14 @@ export function getCategories() {
 export function getCurrentUser(accessToken: string | null) {
   if (!accessToken) return Promise.resolve(null)
   return safe(apiFetch<CurrentUser>('/auth/me', { accessToken }), null, 'current user')
+}
+
+export function getCreatorStats(accessToken: string | null) {
+  if (!accessToken) return Promise.resolve<CreatorStats | null>(null)
+  return safe(apiFetch<CreatorStats>('/users/me/stats', { accessToken }), null, 'creator stats')
+}
+
+export function getFans(accessToken: string | null) {
+  if (!accessToken) return Promise.resolve<Fan[]>([])
+  return safe(apiFetch<Fan[]>('/follows/fans', { accessToken }), [], 'fans')
 }

@@ -32,6 +32,24 @@ export type CurrentUser = PublicUser & {
   createdAt: string
   followerCount: number
   followingCount: number
+  /** Decimal string; diamond totals are 64-bit on the server. */
+  diamondsTotal: string
+}
+
+/** Creator dashboard numbers for the signed-in user. */
+export type CreatorStats = {
+  followerCount: number
+  followingCount: number
+  streamCount: number
+  liveStreams: number
+  viewersNow: number
+  diamondsTotal: string
+}
+
+/** Someone who follows the signed-in user. */
+export type Fan = PublicUser & {
+  followedAt: string
+  followsBack: boolean
 }
 
 export type Category = { slug: string; name: string }

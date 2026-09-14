@@ -5,6 +5,8 @@ import { useRouter, usePathname } from 'next/navigation'
 import { useState } from 'react'
 import { Gamepad2, LogIn, Megaphone, Menu, MessageCircle, Search, ThumbsUp, Trophy, Users, X } from 'lucide-react'
 import type { CurrentUser } from '@/lib/api-types'
+import { AccountMenu } from './account-menu'
+import { accountSections } from './account-nav'
 import { BrandMark } from './brand-mark'
 import { isNavActive, navigationItems } from './data'
 import { SignInDialog } from './sign-in-dialog'
@@ -15,12 +17,16 @@ export function TopNav({ user }: { user: CurrentUser | null }) {
   const pathname = usePathname()
   const router = useRouter()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [accountOpen, setAccountOpen] = useState(false)
   const [authOpen, setAuthOpen] = useState(false)
   const [query, setQuery] = useState('')
 
   async function signOut() {
     await fetch('/api/auth/logout', { method: 'POST' })
     setMenuOpen(false)
+    setAccountOpen(false)
+    // Account pages are private; leave them rather than render a sign-in wall.
+    router.push('/')
     router.refresh()
   }
 
@@ -76,14 +82,20 @@ export function TopNav({ user }: { user: CurrentUser | null }) {
           </button>
 
           <button
-            className="tg-avatar"
+            className={`tg-avatar${accountOpen ? ' is-open' : ''}`}
             type="button"
-            aria-label={user ? `Signed in as ${user.displayName}. Sign out.` : 'Profile'}
+            aria-label={user ? `Account menu for ${user.displayName}` : 'Profile'}
+            aria-haspopup={user ? 'menu' : undefined}
+            aria-expanded={user ? accountOpen : undefined}
             title={user ? `@${user.handle}` : undefined}
-            onClick={user ? signOut : () => setAuthOpen(true)}
+            onClick={user ? () => setAccountOpen((open) => !open) : () => setAuthOpen(true)}
           >
             <img src={user?.avatarUrl ?? '/placeholder-user.jpg'} alt="" />
           </button>
+
+          {user && accountOpen && (
+            <AccountMenu user={user} onClose={() => setAccountOpen(false)} onSignOut={signOut} />
+          )}
 
           {user ? null : (
             <button className="tg-sign-in" type="button" onClick={() => setAuthOpen(true)}>
@@ -120,9 +132,26 @@ export function TopNav({ user }: { user: CurrentUser | null }) {
             </Link>
           ))}
           {user ? (
-            <button type="button" className="sign-in-button" onClick={signOut}>
-              Sign out of @{user.handle}
-            </button>
+            <>
+              {accountSections.map((section) => (
+                <div key={section.title} className="mobile-menu-group">
+                  <span className="mobile-menu-title">{section.title}</span>
+                  {section.items.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setMenuOpen(false)}
+                      className="mobile-nav-item"
+                    >
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              ))}
+              <button type="button" className="sign-in-button" onClick={signOut}>
+                Sign out of @{user.handle}
+              </button>
+            </>
           ) : (
             <button
               type="button"
