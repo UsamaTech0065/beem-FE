@@ -1,18 +1,53 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
-import { Loader2, X } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Loader2, Mail, Send, Smartphone, X } from 'lucide-react'
+import { API_URL } from '@/lib/api'
 
-type Step = 'phone' | 'code'
+type Step = 'choose' | 'email' | 'phone' | 'code'
+type Channel = 'sms' | 'whatsapp' | 'email'
+type Channels = Record<Channel, boolean>
+
+const CHANNEL_LABEL: Record<Channel, string> = { sms: 'SMS', whatsapp: 'WhatsApp', email: 'email' }
+
+/** Until the API answers, assume the channels every deployment has. */
+const DEFAULT_CHANNELS: Channels = { sms: true, whatsapp: false, email: true }
 
 export function SignInDialog({ onClose }: { onClose: () => void }) {
   const router = useRouter()
-  const [step, setStep] = useState<Step>('phone')
-  const [phone, setPhone] = useState('')
+  const [step, setStep] = useState<Step>('choose')
+  const [channels, setChannels] = useState<Channels>(DEFAULT_CHANNELS)
+  const [channel, setChannel] = useState<Channel>('sms')
+  const [identifier, setIdentifier] = useState('')
   const [code, setCode] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+
+  // Hide channels the API has no sender for (WhatsApp needs a Twilio WhatsApp number).
+  useEffect(() => {
+    let cancelled = false
+    fetch(`${API_URL}/auth/otp/channels`)
+      .then((response) => (response.ok ? (response.json() as Promise<Channels>) : null))
+      .then((available) => {
+        if (available && !cancelled) setChannels(available)
+      })
+      .catch(() => {
+        // Keep the defaults; the request step reports a missing channel anyway.
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
+    function onKey(event: KeyboardEvent) {
+      if (event.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose])
 
   async function post(path: string, body: unknown): Promise<Response> {
     return fetch(path, {
@@ -22,21 +57,43 @@ export function SignInDialog({ onClose }: { onClose: () => void }) {
     })
   }
 
-  async function submitPhone(event: React.FormEvent) {
-    event.preventDefault()
+  function go(next: Step, nextChannel?: Channel) {
+    setStep(next)
+    if (nextChannel) setChannel(nextChannel)
+    setError(null)
+    setNotice(null)
+    if (next === 'choose') {
+      setIdentifier('')
+      setCode('')
+    }
+  }
+
+  async function requestCode(): Promise<boolean> {
     setBusy(true)
     setError(null)
+    setNotice(null)
 
-    const response = await post('/api/auth/request-otp', { phone })
+    const response = await post('/api/auth/request-otp', { channel, identifier })
     setBusy(false)
 
     if (!response.ok) {
       const body = await response.json().catch(() => ({ message: 'Something went wrong.' }))
       setError(body.message)
-      return
+      return false
     }
+    return true
+  }
 
-    setStep('code')
+  async function submitIdentifier(event: React.FormEvent) {
+    event.preventDefault()
+    if (await requestCode()) {
+      setCode('')
+      setStep('code')
+    }
+  }
+
+  async function resend() {
+    if (await requestCode()) setNotice(`We sent a new code by ${CHANNEL_LABEL[channel]}.`)
   }
 
   async function submitCode(event: React.FormEvent) {
@@ -44,7 +101,7 @@ export function SignInDialog({ onClose }: { onClose: () => void }) {
     setBusy(true)
     setError(null)
 
-    const response = await post('/api/auth/verify-otp', { phone, code })
+    const response = await post('/api/auth/verify-otp', { identifier, code })
 
     if (!response.ok) {
       const body = await response.json().catch(() => ({ message: 'Something went wrong.' }))
@@ -59,38 +116,138 @@ export function SignInDialog({ onClose }: { onClose: () => void }) {
     onClose()
   }
 
+  const comingSoon = (what: string) => () => setNotice(`${what} sign-in is coming soon.`)
+
   return (
     <div className="auth-backdrop" role="dialog" aria-modal="true" aria-labelledby="auth-title">
-      <div className="auth-panel">
+      <div className={`auth-panel${step === 'choose' ? ' is-choice' : ''}`}>
         <button type="button" className="auth-close" onClick={onClose} aria-label="Close">
           <X size={22} />
         </button>
 
-        {step === 'phone' ? (
-          <form onSubmit={submitPhone}>
-            <h2 id="auth-title">Sign in to beem</h2>
-            <p>We&apos;ll text you a six-digit code.</p>
+        {step === 'choose' && (
+          <div className="auth-choice">
+            <h2 id="auth-title">Welcome to beem!</h2>
+
+            <div className="auth-options">
+              <button type="button" className="auth-option auth-option--dark" onClick={comingSoon('Google')}>
+                <GoogleMark />
+                Continue with Google
+              </button>
+              <button type="button" className="auth-option" onClick={() => go('email', 'email')}>
+                <Mail size={22} strokeWidth={1.8} />
+                Continue with Email
+              </button>
+              <button
+                type="button"
+                className="auth-option"
+                onClick={() => go('phone', channels.sms ? 'sms' : 'whatsapp')}
+              >
+                <Smartphone size={22} strokeWidth={1.8} />
+                Continue with Phone
+              </button>
+            </div>
+
+            <div className="auth-social">
+              <button type="button" className="auth-social-btn" aria-label="Continue with X" onClick={comingSoon('X')}>
+                <XMark />
+              </button>
+              <button
+                type="button"
+                className="auth-social-btn"
+                aria-label="Continue with Telegram"
+                onClick={comingSoon('Telegram')}
+              >
+                <Send size={20} strokeWidth={1.8} />
+              </button>
+            </div>
+
+            {notice && <span className="auth-notice">{notice}</span>}
+
+            <p className="auth-terms">
+              By logging in, you confirm you&apos;re over 18 years old and agree to our{' '}
+              <a href="/terms">Terms of Use</a> and <a href="/privacy">Privacy Policy</a>.
+            </p>
+          </div>
+        )}
+
+        {step === 'email' && (
+          <form onSubmit={submitIdentifier}>
+            <h2 id="auth-title">Continue with Email</h2>
+            <p>We&apos;ll email you a six-digit code.</p>
             <input
-              type="tel"
-              value={phone}
-              onChange={(event) => setPhone(event.target.value)}
-              placeholder="+1 555 000 0000"
-              aria-label="Phone number"
+              type="email"
+              value={identifier}
+              onChange={(event) => setIdentifier(event.target.value)}
+              placeholder="you@example.com"
+              aria-label="Email address"
+              autoComplete="email"
               autoFocus
               required
             />
             {error && <span className="auth-error">{error}</span>}
-            <button type="submit" className="auth-submit" disabled={busy || phone.length < 7}>
+            <button type="submit" className="auth-submit" disabled={busy || !identifier.includes('@')}>
               {busy ? <Loader2 className="auth-spin" size={18} /> : null}
               {busy ? 'Sending' : 'Send code'}
             </button>
+            <button type="button" className="auth-back" onClick={() => go('choose')}>
+              Use a different method
+            </button>
           </form>
-        ) : (
+        )}
+
+        {step === 'phone' && (
+          <form onSubmit={submitIdentifier}>
+            <h2 id="auth-title">Continue with Phone</h2>
+            <p>Include your country code. We&apos;ll send you a six-digit code.</p>
+            <input
+              type="tel"
+              value={identifier}
+              onChange={(event) => setIdentifier(event.target.value)}
+              placeholder="+1 555 000 0000"
+              aria-label="Phone number"
+              autoComplete="tel"
+              autoFocus
+              required
+            />
+            {channels.sms && channels.whatsapp && (
+              <div className="auth-segment" role="radiogroup" aria-label="Send the code by">
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={channel === 'sms'}
+                  className={`auth-segment-btn${channel === 'sms' ? ' is-active' : ''}`}
+                  onClick={() => setChannel('sms')}
+                >
+                  Text message
+                </button>
+                <button
+                  type="button"
+                  role="radio"
+                  aria-checked={channel === 'whatsapp'}
+                  className={`auth-segment-btn${channel === 'whatsapp' ? ' is-active' : ''}`}
+                  onClick={() => setChannel('whatsapp')}
+                >
+                  WhatsApp
+                </button>
+              </div>
+            )}
+            {error && <span className="auth-error">{error}</span>}
+            <button type="submit" className="auth-submit" disabled={busy || identifier.replace(/\D/g, '').length < 7}>
+              {busy ? <Loader2 className="auth-spin" size={18} /> : null}
+              {busy ? 'Sending' : channel === 'whatsapp' ? 'Send on WhatsApp' : 'Send code'}
+            </button>
+            <button type="button" className="auth-back" onClick={() => go('choose')}>
+              Use a different method
+            </button>
+          </form>
+        )}
+
+        {step === 'code' && (
           <form onSubmit={submitCode}>
             <h2 id="auth-title">Enter your code</h2>
             <p>
-              Sent to {phone}. In development the code is printed in the API log rather than
-              texted.
+              Sent by {CHANNEL_LABEL[channel]} to <strong>{identifier}</strong>.
             </p>
             <input
               inputMode="numeric"
@@ -100,28 +257,46 @@ export function SignInDialog({ onClose }: { onClose: () => void }) {
               onChange={(event) => setCode(event.target.value.replace(/\D/g, ''))}
               placeholder="000000"
               aria-label="Six-digit code"
+              autoComplete="one-time-code"
               autoFocus
               required
             />
             {error && <span className="auth-error">{error}</span>}
+            {notice && <span className="auth-notice">{notice}</span>}
             <button type="submit" className="auth-submit" disabled={busy || code.length !== 6}>
               {busy ? <Loader2 className="auth-spin" size={18} /> : null}
               {busy ? 'Checking' : 'Sign in'}
             </button>
-            <button
-              type="button"
-              className="auth-back"
-              onClick={() => {
-                setStep('phone')
-                setCode('')
-                setError(null)
-              }}
-            >
-              Use a different number
-            </button>
+            <div className="auth-links">
+              <button type="button" className="auth-back" onClick={resend} disabled={busy}>
+                Resend code
+              </button>
+              <button type="button" className="auth-back" onClick={() => go(channel === 'email' ? 'email' : 'phone')}>
+                Change {channel === 'email' ? 'email' : 'number'}
+              </button>
+            </div>
           </form>
         )}
       </div>
     </div>
+  )
+}
+
+function GoogleMark() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 48 48" aria-hidden="true">
+      <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.5 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.3l7.9 6.1C12.4 13.7 17.7 9.5 24 9.5z" />
+      <path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.7 6c4.5-4.2 6.9-10.3 6.9-17.7z" />
+      <path fill="#FBBC05" d="M10.5 28.6c-.5-1.4-.8-3-.8-4.6s.3-3.2.8-4.6l-7.9-6.1C1 16.4 0 20.1 0 24s1 7.6 2.6 10.7l7.9-6.1z" />
+      <path fill="#34A853" d="M24 48c6.3 0 11.7-2.1 15.6-5.7l-7.7-6c-2.1 1.4-4.8 2.3-7.9 2.3-6.3 0-11.6-4.2-13.5-9.9l-7.9 6.1C6.5 42.6 14.6 48 24 48z" />
+    </svg>
+  )
+}
+
+function XMark() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M18.9 2H22l-7.4 8.5L23.3 22h-6.8l-5.3-6.9L5 22H1.9l7.9-9L.7 2h7l4.8 6.3L18.9 2zm-1.2 18.2h1.8L7 3.8H5.1l12.6 16.4z" />
+    </svg>
   )
 }

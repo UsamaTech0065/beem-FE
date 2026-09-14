@@ -201,6 +201,56 @@
 .auth-submit:disabled { opacity: .5; cursor: not-allowed; }
 .auth-back { color: var(--muted-foreground); font-size: 14px; text-decoration: underline; }
 .auth-error { color: var(--destructive); font-size: 14px; }
+.auth-notice { color: var(--muted-foreground); font-size: 14px; text-align: center; }
+.auth-links { display: flex; justify-content: center; gap: 22px; }
+.auth-back:disabled { opacity: .5; cursor: not-allowed; }
+
+/* method picker */
+.auth-panel.is-choice { width: min(100%, 440px); padding: 44px 34px 30px; }
+.auth-choice { display: grid; gap: 26px; }
+.auth-choice h2 { text-align: center; font-size: 27px; }
+.auth-options { display: grid; gap: 14px; margin-top: 14px; }
+.auth-option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  height: 56px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--background);
+  color: var(--foreground);
+  font-size: 17px;
+  font-weight: 700;
+  transition: background .15s, border-color .15s, filter .15s;
+}
+.auth-option:hover { background: var(--secondary); border-color: #c9c9d1; }
+.auth-option--dark { background: #17171c; border-color: #17171c; color: #fff; }
+.auth-option--dark:hover { background: #17171c; border-color: #17171c; filter: brightness(1.25); }
+.auth-social { display: flex; justify-content: center; gap: 14px; }
+.auth-social-btn {
+  display: grid;
+  width: 50px;
+  height: 50px;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  color: var(--foreground);
+  transition: background .15s;
+}
+.auth-social-btn:hover { background: var(--secondary); }
+.auth-terms { text-align: center; font-size: 14px; line-height: 1.5; color: var(--muted-foreground); }
+.auth-terms a { color: inherit; text-decoration: underline; }
+
+/* SMS / WhatsApp toggle */
+.auth-segment { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; border-radius: 999px; background: var(--secondary); padding: 4px; }
+.auth-segment-btn { height: 40px; border-radius: 999px; color: #6d6d77; font-size: 15px; font-weight: 600; transition: background .15s, color .15s; }
+.auth-segment-btn.is-active { background: var(--background); color: var(--foreground); box-shadow: 0 1px 3px rgba(23,23,28,.14); }
+
+@media (max-width: 760px) {
+  .auth-panel.is-choice { padding: 40px 22px 26px; }
+  .auth-choice h2 { font-size: 24px; }
+}
 .auth-spin { animation: auth-spin 1s linear infinite; }
 @keyframes auth-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .auth-spin { animation: none; } }
