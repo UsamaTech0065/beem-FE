@@ -57,8 +57,9 @@ export function StreamGrid({
 
   return (
     <section className="live-grid" aria-label="Live streams">
-      {streams.map((stream) => (
-        <StreamCard key={stream.id} stream={stream} />
+      {streams.map((stream, index) => (
+        // The grid is at most four across, so the first four are always above the fold.
+        <StreamCard key={stream.id} stream={stream} priority={index < 4} />
       ))}
     </section>
   )

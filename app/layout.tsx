@@ -38,7 +38,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="bg-background">
-      <body className="antialiased">
+      {/* Browser extensions (ColorZilla, Grammarly, ...) add attributes to <body>
+          before React hydrates; suppress the resulting one-node mismatch warning. */}
+      <body className="antialiased" suppressHydrationWarning>
         {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>

@@ -5,7 +5,13 @@ import { formatDiamonds, type StreamCard as StreamCardData } from '@/lib/api-typ
 const FALLBACK_THUMB = '/placeholder.jpg'
 const FALLBACK_AVATAR = '/placeholder-user.jpg'
 
-export function StreamCard({ stream }: { stream: StreamCardData }) {
+type Props = {
+  stream: StreamCardData
+  /** True for cards in the first row: they are the page's largest paint, so load eagerly. */
+  priority?: boolean
+}
+
+export function StreamCard({ stream, priority = false }: Props) {
   // A recorded clip reads as a player: a centred play control, and no host
   // strip along the bottom. Only live cards carry the name and diamond total.
   const isVideo = stream.mode === 'VIDEO'
@@ -16,6 +22,7 @@ export function StreamCard({ stream }: { stream: StreamCardData }) {
         src={stream.thumbnailUrl ?? FALLBACK_THUMB}
         alt={`${stream.host.displayName} live stream`}
         fill
+        priority={priority}
         sizes="(max-width: 760px) 50vw, (max-width: 1180px) 33vw, 250px"
         className="stream-image"
       />
