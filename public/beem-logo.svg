@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="481" height="481" viewBox="0 0 481 481">
+  <g id="beem-logo" transform="translate(769 -3709)">
+    <g id="Rectangle_3" data-name="Rectangle 3" transform="translate(-769 3709)" fill="#726bf7" stroke="#707070" stroke-width="1">
+      <rect width="481" height="481" rx="112" stroke="none"/>
+      <rect x="0.5" y="0.5" width="480" height="480" rx="111.5" fill="none"/>
+    </g>
+    <g id="Group_6" data-name="Group 6" transform="translate(-910.742 3564.29)">
+      <path id="Path_1" data-name="Path 1" d="M290.1,625.71V496.3s-65.762-38.095-29.088-93.964,153-44.595,153-44.595l-46.651-91.618s-12.415-34.43,22.117-43.926C430.8,210.765,437.3,266.124,437.3,266.124l9.165,100.5,11.948,8.845L448.341,266.124s-9.266-47.818,30.969-49.522,35.065,41.412,35.065,41.412L500.588,456.279V625.71Z" transform="translate(0 0)"/>
+      <path id="Path_2" data-name="Path 2" d="M295.748,416.255s35.935-35.213,71.27-35.213,70.07,35.213,70.07,35.213-31.294,36.751-71.706,35.778S295.748,416.255,295.748,416.255Z" transform="translate(5.843 20.958)" fill="#fff"/>
+      <ellipse id="Ellipse_1" data-name="Ellipse 1" cx="36.077" cy="37.205" rx="36.077" ry="37.205" transform="translate(336.825 399.698)"/>
+    </g>
+  </g>
+</svg>
