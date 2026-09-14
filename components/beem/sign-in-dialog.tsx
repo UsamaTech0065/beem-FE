@@ -68,7 +68,8 @@ export function SignInDialog({ onClose }: { onClose: () => void }) {
     }
   }
 
-  async function requestCode(): Promise<boolean> {
+  /** Resolves to the development code when the API is in development mode, else an empty string. */
+  async function requestCode(): Promise<string | null> {
     setBusy(true)
     setError(null)
     setNotice(null)
@@ -79,21 +80,32 @@ export function SignInDialog({ onClose }: { onClose: () => void }) {
     if (!response.ok) {
       const body = await response.json().catch(() => ({ message: 'Something went wrong.' }))
       setError(body.message)
-      return false
+      return null
     }
-    return true
+
+    const body = (await response.json().catch(() => ({}))) as { devCode?: string }
+    return body.devCode ?? ''
+  }
+
+  /** In development the API returns the fixed code; fill it in so nobody has to read the log. */
+  function applyDevCode(devCode: string) {
+    setCode(devCode)
+    if (devCode) setNotice(`Development mode: the code ${devCode} has been filled in for you.`)
   }
 
   async function submitIdentifier(event: React.FormEvent) {
     event.preventDefault()
-    if (await requestCode()) {
-      setCode('')
-      setStep('code')
-    }
+    const devCode = await requestCode()
+    if (devCode === null) return
+    applyDevCode(devCode)
+    setStep('code')
   }
 
   async function resend() {
-    if (await requestCode()) setNotice(`We sent a new code by ${CHANNEL_LABEL[channel]}.`)
+    const devCode = await requestCode()
+    if (devCode === null) return
+    applyDevCode(devCode)
+    if (!devCode) setNotice(`We sent a new code by ${CHANNEL_LABEL[channel]}.`)
   }
 
   async function submitCode(event: React.FormEvent) {
