@@ -14,6 +14,7 @@ import { ACCESS_COOKIE, REFRESH_COOKIE, clearSession, writeSession } from '@/lib
 const LEEWAY_SECONDS = 60
 
 export async function proxy(request: NextRequest): Promise<NextResponse> {
+
   const refreshToken = request.cookies.get(REFRESH_COOKIE)?.value
   if (!refreshToken) return NextResponse.next()
 
