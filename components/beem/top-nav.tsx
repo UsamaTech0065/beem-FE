@@ -3,10 +3,9 @@
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { useState } from 'react'
-import { Gamepad2, LogIn, Megaphone, Menu, MessageCircle, Search, ThumbsUp, Trophy, Users, X } from 'lucide-react'
+import { Gamepad2, LogIn, Megaphone, MessageCircle, Search, ThumbsUp, Trophy, Users, X } from 'lucide-react'
 import type { CurrentUser } from '@/lib/api-types'
 import { AccountMenu } from './account-menu'
-import { accountSections } from './account-nav'
 import { BrandMark } from './brand-mark'
 import { isNavActive, navigationItems } from './data'
 import { SignInDialog } from './sign-in-dialog'
@@ -16,14 +15,13 @@ const iconMap = { 'thumbs-up': ThumbsUp, users: Users, search: Search, messages:
 export function TopNav({ user }: { user: CurrentUser | null }) {
   const pathname = usePathname()
   const router = useRouter()
-  const [menuOpen, setMenuOpen] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
   const [accountOpen, setAccountOpen] = useState(false)
   const [authOpen, setAuthOpen] = useState(false)
   const [query, setQuery] = useState('')
 
   async function signOut() {
     await fetch('/api/auth/logout', { method: 'POST' })
-    setMenuOpen(false)
     setAccountOpen(false)
     // Account pages are private; leave them rather than render a sign-in wall.
     router.push('/')
@@ -105,65 +103,31 @@ export function TopNav({ user }: { user: CurrentUser | null }) {
           )}
         </div>
 
+        {/* Mobile only. Navigation lives in the bottom bar and the account links in
+            the avatar menu, so the one thing left to reveal here is search. */}
         <button
           className="tg-menu-toggle"
           type="button"
-          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-          onClick={() => setMenuOpen(!menuOpen)}
+          aria-label={searchOpen ? 'Close search' : 'Search'}
+          aria-expanded={searchOpen}
+          onClick={() => setSearchOpen((open) => !open)}
         >
-          {menuOpen ? <X /> : <Menu />}
+          {searchOpen ? <X /> : <Search />}
         </button>
       </div>
 
-      {menuOpen && (
-        <div className="mobile-menu">
-          <div className="search-box">
+      {searchOpen && (
+        <div className="mobile-search">
+          <label className="search-box">
             <Search size={17} />
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search"
               aria-label="Search"
+              autoFocus
             />
-          </div>
-          {navigationItems.map((item) => (
-            <Link key={item.label} href={item.href} onClick={() => setMenuOpen(false)} className="mobile-nav-item">
-              {item.label}
-            </Link>
-          ))}
-          {user ? (
-            <>
-              {accountSections.map((section) => (
-                <div key={section.title} className="mobile-menu-group">
-                  <span className="mobile-menu-title">{section.title}</span>
-                  {section.items.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setMenuOpen(false)}
-                      className="mobile-nav-item"
-                    >
-                      {item.label}
-                    </Link>
-                  ))}
-                </div>
-              ))}
-              <button type="button" className="sign-in-button" onClick={signOut}>
-                Sign out of @{user.handle}
-              </button>
-            </>
-          ) : (
-            <button
-              type="button"
-              className="sign-in-button"
-              onClick={() => {
-                setMenuOpen(false)
-                setAuthOpen(true)
-              }}
-            >
-              Sign in
-            </button>
-          )}
+          </label>
         </div>
       )}
 

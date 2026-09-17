@@ -180,12 +180,9 @@
 .feed-empty { margin: 48px 0; color: var(--muted-foreground); font-size: 16px; text-align: center; }
 
 /* ---- mobile menu and bottom nav ---- */
-.mobile-menu { display: grid; gap: 10px; padding: 0 16px 16px; }
+.mobile-search { display: none; padding: 0 12px 12px; }
 .search-box { display: flex; align-items: center; gap: 8px; border: 1px solid var(--border); border-radius: 99px; padding: 10px 16px; color: var(--muted-foreground); }
 .search-box input { min-width: 0; flex: 1; outline: none; }
-.mobile-nav-item { border-radius: 12px; padding: 10px 16px; text-align: left; font-weight: 700; }
-.mobile-nav-item:hover { background: var(--secondary); }
-.sign-in-button { border-radius: 99px; background: var(--primary); padding: 12px; color: white; font-weight: 800; }
 .mobile-bottom-nav { display: none; }
 
 /* ---- sign-in dialog ---- */
@@ -277,6 +274,7 @@
   .tg-sign-in { height: 40px; padding: 0 16px 0 14px; font-size: 15px; gap: 6px; }
   .tg-sign-in svg { width: 18px; height: 18px; }
   .tg-menu-toggle { display: grid; }
+  .mobile-search { display: block; }
   .tg-main { width: 100%; padding: 0 10px 90px; }
   .tg-main-feed { padding-top: 12px; }
   .tg-tabs-row { height: 54px; gap: 10px; padding-left: 4px; }

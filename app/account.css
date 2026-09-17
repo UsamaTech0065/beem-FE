@@ -30,8 +30,6 @@
 .acct-item svg { flex: 0 0 auto; }
 .acct-item-text { display: grid; gap: 2px; }
 .acct-item-text small { color: var(--muted-foreground); font-size: 12px; line-height: 1.35; }
-.mobile-menu-group { display: grid; gap: 2px; padding-top: 6px; }
-.mobile-menu-title { padding: 6px 16px 2px; color: var(--muted-foreground); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
 
 /* ---- account pages ---- */
 .acct-main { width: min(100% - 32px, var(--leader-w)); padding-top: 34px; }
