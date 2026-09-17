@@ -16,6 +16,7 @@ import {
   Lock,
   LogOut,
   QrCode,
+  Radio,
   Star,
   Users,
 } from 'lucide-react'
@@ -88,6 +89,19 @@ export function AccountMenu({ user, onClose, onSignOut }: Props) {
         </div>
         <ChevronRight size={20} strokeWidth={1.8} className="acct-profile-chevron" />
       </Link>
+
+      {user.liveStream && (
+        <Link href={`/stream/${user.liveStream.id}`} className="acct-live" onClick={onClose} role="menuitem">
+          <Radio size={20} strokeWidth={2.2} />
+          <span className="acct-item-text">
+            You&apos;re live now
+            <small>
+              {user.liveStream.title} · {compactNumber(user.liveStream.viewerCount)} watching
+            </small>
+          </span>
+          <ChevronRight size={18} strokeWidth={2} />
+        </Link>
+      )}
 
       {accountSections.map((section) => (
         <div className="acct-section" key={section.title}>

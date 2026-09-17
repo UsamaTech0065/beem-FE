@@ -263,6 +263,19 @@
   .live-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
+/* Tablet range. The header's fixed-width parts stop fitting well before the
+   phone layout starts, which pushed the avatar off the right edge. Fold things
+   away in order of importance: search into its toggle first, then the extras. */
+@media (max-width: 1100px) {
+  .tg-search { display: none; }
+  .tg-menu-toggle { display: grid; flex: 0 0 auto; }
+  .mobile-search { display: block; padding: 0 20px 12px; }
+}
+@media (max-width: 900px) {
+  .tg-balance, .tg-icon-button { display: none; }
+  .tg-nav { gap: 14px; }
+}
+
 @media (max-width: 760px) {
   :root { --header-h: 64px; --grid-gap: 8px; }
   .tg-header-inner { padding: 0 12px; gap: 12px; }

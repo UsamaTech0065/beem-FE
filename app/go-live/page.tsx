@@ -1,5 +1,6 @@
 import { AccountShell } from '@/components/beem/account-shell'
 import { GoLiveForm } from '@/components/beem/go-live-form'
+import { LiveNowCard } from '@/components/beem/live-now-card'
 import { getCategories, getCurrentUser } from '@/lib/api'
 import { getAccessToken } from '@/lib/session'
 
@@ -18,12 +19,14 @@ export default async function GoLivePage() {
       title="Go live"
       subtitle="Check your camera, name your stream, and start."
     >
-      {user && (
+      {user?.liveStream ? (
+        <LiveNowCard stream={user.liveStream} />
+      ) : user ? (
         <GoLiveForm
           defaultTitle={`${user.displayName} is live`}
           categories={categories.filter((category) => !FEED_SLUGS.has(category.slug))}
         />
-      )}
+      ) : null}
     </AccountShell>
   )
 }

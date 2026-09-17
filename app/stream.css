@@ -84,3 +84,54 @@
   .golive { grid-template-columns: 1fr; gap: 18px; }
   .golive-preview { max-width: 280px; justify-self: center; width: 100%; }
 }
+
+/* ---- "you are live" indicators ---- */
+.tg-live-pill { display: inline-flex; align-items: center; gap: 8px; height: 40px; flex: 0 0 auto; border-radius: 999px; background: #ffe1ee; padding: 0 14px; color: var(--primary); font-size: 14px; font-weight: 800; white-space: nowrap; transition: filter .15s; }
+.tg-live-pill:hover { filter: brightness(.97); }
+.tg-live-dot { display: inline-block; width: 9px; height: 9px; flex: 0 0 auto; border-radius: 50%; background: var(--primary); animation: live-pulse 1.6s ease-out infinite; }
+.tg-live-count { display: inline-flex; align-items: center; gap: 4px; color: #b3195c; font-weight: 700; }
+@keyframes live-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(255,45,135,.55); }
+  70% { box-shadow: 0 0 0 8px rgba(255,45,135,0); }
+  100% { box-shadow: 0 0 0 0 rgba(255,45,135,0); }
+}
+.tg-avatar.is-live { position: relative; overflow: visible; box-shadow: 0 0 0 2px var(--background), 0 0 0 4px var(--primary); }
+.tg-avatar.is-live img { border-radius: 50%; }
+.tg-avatar.is-live::after { position: absolute; bottom: -7px; left: 50%; transform: translateX(-50%); border: 2px solid var(--background); border-radius: 6px; background: var(--primary); padding: 0 5px; color: #fff; font-size: 9px; font-weight: 800; letter-spacing: .05em; line-height: 14px; content: 'LIVE'; }
+
+.acct-live { display: flex; align-items: center; gap: 12px; margin: 0 10px 6px; border-radius: 14px; background: #ffe1ee; padding: 12px 14px; color: var(--primary); font-size: 15px; font-weight: 800; }
+.acct-live:hover { filter: brightness(.97); }
+.acct-live .acct-item-text { min-width: 0; flex: 1; }
+.acct-live small { overflow: hidden; color: #b3195c; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+
+.livenow { display: flex; align-items: center; gap: 20px; border: 1px solid var(--primary); border-radius: 20px; background: #fff5f9; padding: 26px 28px; }
+.livenow-icon { display: grid; width: 60px; height: 60px; flex: 0 0 auto; place-items: center; border-radius: 50%; background: var(--primary); color: #fff; }
+.livenow-body { min-width: 0; flex: 1; }
+.livenow-eyebrow { display: inline-flex; align-items: center; gap: 8px; margin: 0; color: var(--primary); font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
+.livenow h2 { margin: 4px 0 0; overflow: hidden; font-size: 22px; font-weight: 800; letter-spacing: -.03em; text-overflow: ellipsis; white-space: nowrap; }
+.livenow-meta { display: flex; align-items: center; gap: 6px; margin: 6px 0 0; color: var(--muted-foreground); font-size: 14px; }
+.livenow-actions { display: flex; flex: 0 0 auto; gap: 10px; }
+
+/* Between phone and wide desktop the header has no spare room: show the dot
+   and the count only, and give back some of the search field's width. */
+@media (max-width: 1400px) {
+  .tg-live-text { display: none; }
+  .tg-header-inner:has(.tg-live-pill) .tg-search { width: 150px; }
+  .tg-header-inner:has(.tg-live-pill) .tg-balance span:first-child { display: none; }
+}
+@media (max-width: 1000px) {
+  .tg-header-inner:has(.tg-live-pill) .tg-balance,
+  .tg-header-inner:has(.tg-live-pill) .tg-icon-button { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tg-live-dot { animation: none; }
+}
+@media (max-width: 760px) {
+  /* The header is tight on a phone: keep the dot and the count, drop the words. */
+  .tg-live-pill { height: 34px; gap: 6px; padding: 0 10px; font-size: 13px; }
+  .tg-live-text { display: none; }
+  .livenow { flex-direction: column; align-items: flex-start; padding: 20px; }
+  .livenow h2 { white-space: normal; }
+  .livenow-actions { width: 100%; }
+  .livenow-actions .acct-btn { flex: 1; }
+}

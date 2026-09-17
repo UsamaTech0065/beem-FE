@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { useState } from 'react'
-import { Gamepad2, LogIn, Megaphone, MessageCircle, Search, ThumbsUp, Trophy, Users, X } from 'lucide-react'
+import { Eye, Gamepad2, LogIn, Megaphone, MessageCircle, Search, ThumbsUp, Trophy, Users, X } from 'lucide-react'
 import type { CurrentUser } from '@/lib/api-types'
 import { AccountMenu } from './account-menu'
 import { BrandMark } from './brand-mark'
@@ -79,8 +79,22 @@ export function TopNav({ user }: { user: CurrentUser | null }) {
             <Megaphone size={26} strokeWidth={1.8} />
           </button>
 
+          {user?.liveStream && (
+            <Link
+              href={`/stream/${user.liveStream.id}`}
+              className="tg-live-pill"
+              aria-label={`You are live with ${user.liveStream.viewerCount} watching. Return to your stream.`}
+            >
+              <span className="tg-live-dot" aria-hidden="true" />
+              <span className="tg-live-text">You&apos;re live</span>
+              <span className="tg-live-count">
+                <Eye size={14} fill="currentColor" strokeWidth={0} /> {user.liveStream.viewerCount}
+              </span>
+            </Link>
+          )}
+
           <button
-            className={`tg-avatar${accountOpen ? ' is-open' : ''}`}
+            className={`tg-avatar${accountOpen ? ' is-open' : ''}${user?.liveStream ? ' is-live' : ''}`}
             type="button"
             aria-label={user ? `Account menu for ${user.displayName}` : 'Profile'}
             aria-haspopup={user ? 'menu' : undefined}

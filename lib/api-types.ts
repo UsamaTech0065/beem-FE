@@ -34,6 +34,8 @@ export type CurrentUser = PublicUser & {
   followingCount: number
   /** Decimal string; diamond totals are 64-bit on the server. */
   diamondsTotal: string
+  /** The stream this user is hosting right now, if any. */
+  liveStream: { id: string; title: string; viewerCount: number; startedAt: string } | null
 }
 
 /** What the browser needs to join a stream's LiveKit room. */
