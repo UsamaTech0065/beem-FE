@@ -292,7 +292,11 @@
   .promo-grid { grid-template-columns: 1fr; }
   .promo-banner { min-height: 100px; padding: 14px 18px; }
   .promo-banner p { font-size: 18px; }
-  .action-rail { display: none; }
+  /* The rail collapses to its one essential action: a floating Go live button
+     above the bottom bar. Without it there is no way to start a stream on a phone. */
+  .action-rail { right: 14px; bottom: calc(78px + env(safe-area-inset-bottom)); width: auto; gap: 0; padding: 0; background: transparent; }
+  .coins-action, .rail-language { display: none; }
+  .video-fab { width: 56px; height: 56px; }
   .mobile-bottom-nav { position: fixed; right: 0; bottom: 0; left: 0; z-index: 40; display: grid; grid-template-columns: repeat(5, 1fr); height: 64px; border-top: 1px solid var(--border); background: rgba(255,255,255,.97); padding: 6px 8px 4px; backdrop-filter: blur(14px); }
   .mobile-bottom-item { display: flex; min-width: 0; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: #8a8a93; font-size: 11px; line-height: 16px; }
   .mobile-bottom-item.active { color: var(--primary); font-weight: 700; }

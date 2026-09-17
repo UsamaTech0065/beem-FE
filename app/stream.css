@@ -1,9 +1,12 @@
-/* ---- stream room ---- */
-.room { display: grid; place-items: center; min-height: calc(100vh - var(--header-h)); background: #0d0d11; padding: 16px; }
+/* ---- stream room ----
+   Heights are declared twice: vh for old browsers, then dvh, which excludes a
+   phone browser's address bar so the host controls are never pushed off screen. */
+.room { display: grid; place-items: center; min-height: calc(100vh - var(--header-h)); min-height: calc(100dvh - var(--header-h)); background: #0d0d11; padding: 16px; }
 .room-stage {
   position: relative;
   width: min(100%, 1180px);
   height: calc(100vh - var(--header-h) - 32px);
+  height: calc(100dvh - var(--header-h) - 32px);
   min-height: 420px;
   overflow: hidden;
   border-radius: 18px;
@@ -74,7 +77,8 @@
 }
 @media (max-width: 760px) {
   .room { padding: 0; }
-  .room-stage { height: calc(100vh - var(--header-h)); border-radius: 0; }
+  .room-stage { height: calc(100vh - var(--header-h)); height: calc(100dvh - var(--header-h)); border-radius: 0; }
+  .room-bottom { padding-bottom: calc(18px + env(safe-area-inset-bottom)); }
   .room-video { object-fit: cover; }
   .room-bottom h1 { font-size: 17px; }
   .golive { grid-template-columns: 1fr; gap: 18px; }

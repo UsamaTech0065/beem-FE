@@ -104,7 +104,12 @@
   .acct-cards, .acct-cards--tiers { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 760px) {
-  .acct-menu { width: min(300px, calc(100vw - 24px)); }
+  /* Stop above the 64px bottom bar, which would otherwise cover Logout. */
+  .acct-menu {
+    width: min(300px, calc(100vw - 24px));
+    max-height: calc(100vh - var(--header-h) - 84px);
+    max-height: calc(100dvh - var(--header-h) - 84px - env(safe-area-inset-bottom));
+  }
   .acct-main { padding-top: 18px; }
   .acct-head { flex-direction: column; gap: 12px; margin-bottom: 18px; }
   .acct-head h1 { font-size: 24px; }

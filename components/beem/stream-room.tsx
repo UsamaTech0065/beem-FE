@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { Eye, Gem, Loader2, Mic, MicOff, Video, VideoOff, Volume2, X } from 'lucide-react'
+import { Eye, Gem, Loader2, Mic, MicOff, SwitchCamera, Video, VideoOff, Volume2, X } from 'lucide-react'
 import { formatDiamonds, type StreamCard } from '@/lib/api-types'
 import { useLiveRoom } from '@/lib/use-live-room'
 
@@ -36,7 +36,7 @@ export function StreamRoom({ stream }: { stream: StreamCard }) {
         {/* The host sees themselves mirrored and muted; viewers hear the separate <audio>. */}
         <video
           ref={room.videoRef}
-          className={`room-video${isHost ? ' is-mirrored' : ''}`}
+          className={`room-video${isHost && room.facingUser ? ' is-mirrored' : ''}`}
           autoPlay
           playsInline
           muted
@@ -128,6 +128,11 @@ export function StreamRoom({ stream }: { stream: StreamCard }) {
               >
                 {room.cameraOn ? <Video size={22} /> : <VideoOff size={22} />}
               </button>
+              {room.canFlipCamera && room.cameraOn && (
+                <button type="button" className="room-control" onClick={room.flipCamera} aria-label="Switch camera">
+                  <SwitchCamera size={22} />
+                </button>
+              )}
               <button type="button" className="room-end" onClick={endStream} disabled={ending}>
                 {ending ? 'Ending' : 'End stream'}
               </button>

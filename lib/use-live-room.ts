@@ -23,12 +23,18 @@ export type LiveRoom = {
   cameraOn: boolean
   /** True when the browser blocked audio until the viewer interacts with the page. */
   audioBlocked: boolean
+  /** Host only: the device has more than one camera, so switching is possible (phones). */
+  canFlipCamera: boolean
+  /** Host only: the front camera is in use, so the self-view should be mirrored. */
+  facingUser: boolean
   /** Attach to the <video> that shows the host. */
   videoRef: React.RefObject<HTMLVideoElement | null>
   /** Attach to the <audio> that plays the host. Unused for the host themselves. */
   audioRef: React.RefObject<HTMLAudioElement | null>
   toggleMic: () => Promise<void>
   toggleCamera: () => Promise<void>
+  /** Switches between the front and back cameras without dropping the stream. */
+  flipCamera: () => Promise<void>
   unblockAudio: () => Promise<void>
   /** Leaves the room without ending the stream. */
   leave: () => void
@@ -48,10 +54,14 @@ export function useLiveRoom(streamId: string): LiveRoom {
   const [micOn, setMicOn] = useState(false)
   const [cameraOn, setCameraOn] = useState(false)
   const [audioBlocked, setAudioBlocked] = useState(false)
+  const [canFlipCamera, setCanFlipCamera] = useState(false)
+  const [facingUser, setFacingUser] = useState(true)
 
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const roomRef = useRef<Room | null>(null)
+  // The library is imported on demand; callbacks outside the effect reach it here.
+  const livekitRef = useRef<typeof import('livekit-client') | null>(null)
 
   useEffect(() => {
     // React runs effects twice in development; `cancelled` makes the first,
@@ -75,8 +85,10 @@ export function useLiveRoom(streamId: string): LiveRoom {
       }
       const connection = (await response.json()) as StreamConnection
 
-      const { Room, RoomEvent, Track, DisconnectReason, VideoPresets } = await import('livekit-client')
+      const livekit = await import('livekit-client')
       if (cancelled) return
+      livekitRef.current = livekit
+      const { Room, RoomEvent, Track, DisconnectReason, VideoPresets } = livekit
 
       const isHost = connection.role === 'host'
       const fromHost = (participant: Participant) => participant.identity === connection.hostIdentity
@@ -149,6 +161,10 @@ export function useLiveRoom(streamId: string): LiveRoom {
         if (camera) attach(camera)
         setMicOn(room.localParticipant.isMicrophoneEnabled)
         setCameraOn(room.localParticipant.isCameraEnabled)
+        // Device labels are only populated once permission is granted, so this
+        // has to come after the camera is already on.
+        const cameras = await Room.getLocalDevices('videoinput').catch(() => [])
+        if (!cancelled) setCanFlipCamera(cameras.length > 1)
         return
       }
 
@@ -190,6 +206,21 @@ export function useLiveRoom(streamId: string): LiveRoom {
     setCameraOn(local.isCameraEnabled)
   }, [])
 
+  const flipCamera = useCallback(async () => {
+    const livekit = livekitRef.current
+    const local = roomRef.current?.localParticipant
+    if (!livekit || !local) return
+
+    const camera = local.getTrackPublication(livekit.Track.Source.Camera)?.videoTrack
+    if (!camera) return
+
+    // restartTrack swaps the underlying device on the same published track, so
+    // viewers see a brief freeze rather than the stream dropping and rejoining.
+    const next = facingUser ? 'environment' : 'user'
+    await camera.restartTrack({ facingMode: next })
+    setFacingUser(next === 'user')
+  }, [facingUser])
+
   const unblockAudio = useCallback(async () => {
     await roomRef.current?.startAudio()
   }, [])
@@ -206,10 +237,13 @@ export function useLiveRoom(streamId: string): LiveRoom {
     micOn,
     cameraOn,
     audioBlocked,
+    canFlipCamera,
+    facingUser,
     videoRef,
     audioRef,
     toggleMic,
     toggleCamera,
+    flipCamera,
     unblockAudio,
     leave,
   }
