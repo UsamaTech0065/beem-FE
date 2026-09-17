@@ -36,6 +36,16 @@ export type CurrentUser = PublicUser & {
   diamondsTotal: string
 }
 
+/** What the browser needs to join a stream's LiveKit room. */
+export type StreamConnection = {
+  url: string
+  token: string
+  identity: string
+  role: 'host' | 'viewer'
+  /** Identity of the host inside the room, to tell their tracks from anyone else's. */
+  hostIdentity: string
+}
+
 /** Creator dashboard numbers for the signed-in user. */
 export type CreatorStats = {
   followerCount: number

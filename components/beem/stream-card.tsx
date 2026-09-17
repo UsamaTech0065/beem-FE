@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import Link from 'next/link'
 import { Eye, Gem, Play } from 'lucide-react'
 import { formatDiamonds, type StreamCard as StreamCardData } from '@/lib/api-types'
 
@@ -17,52 +18,54 @@ export function StreamCard({ stream, priority = false }: Props) {
   const isVideo = stream.mode === 'VIDEO'
 
   return (
-    <article className={`stream-card ${isVideo ? 'stream-card-video' : ''}`}>
-      <Image
-        src={stream.thumbnailUrl ?? FALLBACK_THUMB}
-        alt={`${stream.host.displayName} live stream`}
-        fill
-        // Eager rather than `priority`: priority also preloads, and in dev the
-        // preload can finish before the card's CSS lands, which trips a false
-        // "height 0" warning from next/image.
-        loading={priority ? 'eager' : undefined}
-        sizes="(max-width: 760px) 50vw, (max-width: 1180px) 33vw, 250px"
-        className="stream-image"
-      />
+    <Link href={`/stream/${stream.id}`} className="stream-card-link" aria-label={`Watch ${stream.host.displayName}`}>
+      <article className={`stream-card ${isVideo ? 'stream-card-video' : ''}`}>
+        <Image
+          src={stream.thumbnailUrl ?? FALLBACK_THUMB}
+          alt={`${stream.host.displayName} live stream`}
+          fill
+          // Eager rather than `priority`: priority also preloads, and in dev the
+          // preload can finish before the card's CSS lands, which trips a false
+          // "height 0" warning from next/image.
+          loading={priority ? 'eager' : undefined}
+          sizes="(max-width: 760px) 50vw, (max-width: 1180px) 33vw, 250px"
+          className="stream-image"
+        />
 
-      <div className="stream-top">
-        <span className="stream-viewers">
-          <Eye size={16} fill="currentColor" strokeWidth={0} /> {stream.viewerCount}
-        </span>
-        {stream.mode === 'VERSUS' && (
-          <>
-            <span className="stream-divider" aria-hidden="true" />
-            <span className="stream-versus">VS</span>
-          </>
-        )}
-      </div>
-
-      {isVideo ? (
-        <span className="stream-play" aria-hidden="true">
-          <Play size={26} fill="currentColor" strokeWidth={0} />
-        </span>
-      ) : (
-        <div className="stream-info">
-          <Image
-            src={stream.host.avatarUrl ?? FALLBACK_AVATAR}
-            alt=""
-            width={48}
-            height={48}
-            className="stream-avatar"
-          />
-          <div className="stream-meta">
-            <h2>{stream.host.displayName}</h2>
-            <p>
-              <Gem size={14} strokeWidth={2.2} /> {formatDiamonds(stream.diamondsTotal)}
-            </p>
-          </div>
+        <div className="stream-top">
+          <span className="stream-viewers">
+            <Eye size={16} fill="currentColor" strokeWidth={0} /> {stream.viewerCount}
+          </span>
+          {stream.mode === 'VERSUS' && (
+            <>
+              <span className="stream-divider" aria-hidden="true" />
+              <span className="stream-versus">VS</span>
+            </>
+          )}
         </div>
-      )}
-    </article>
+
+        {isVideo ? (
+          <span className="stream-play" aria-hidden="true">
+            <Play size={26} fill="currentColor" strokeWidth={0} />
+          </span>
+        ) : (
+          <div className="stream-info">
+            <Image
+              src={stream.host.avatarUrl ?? FALLBACK_AVATAR}
+              alt=""
+              width={48}
+              height={48}
+              className="stream-avatar"
+            />
+            <div className="stream-meta">
+              <h2>{stream.host.displayName}</h2>
+              <p>
+                <Gem size={14} strokeWidth={2.2} /> {formatDiamonds(stream.diamondsTotal)}
+              </p>
+            </div>
+          </div>
+        )}
+      </article>
+    </Link>
   )
 }

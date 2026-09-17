@@ -102,6 +102,11 @@ export function getLiveStreams(options: { category?: string; limit?: number } = 
   )
 }
 
+/** One stream, or null when it does not exist or the API is down. */
+export function getStream(id: string) {
+  return safe(apiFetch<StreamCard>(`/streams/${encodeURIComponent(id)}`), null, 'stream')
+}
+
 export function getFollowingStreams(accessToken: string | null) {
   if (!accessToken) return Promise.resolve(EMPTY_PAGE)
   return safe(apiFetch<Page<StreamCard>>('/streams/following', { accessToken }), EMPTY_PAGE, 'following feed')

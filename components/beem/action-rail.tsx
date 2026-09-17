@@ -1,5 +1,4 @@
-'use client'
-
+import Link from 'next/link'
 import { CircleStar, Globe, Video } from 'lucide-react'
 
 export function ActionRail() {
@@ -13,9 +12,10 @@ export function ActionRail() {
           Coins now
         </span>
       </button>
-      <button type="button" className="video-fab" aria-label="Start live video">
+      {/* Signed-out visitors land on a sign-in prompt there, so no auth check is needed here. */}
+      <Link href="/go-live" className="video-fab" aria-label="Start live video">
         <Video size={26} strokeWidth={2.4} fill="currentColor" />
-      </button>
+      </Link>
 
       <button type="button" className="rail-language" aria-label="Change language">
         <Globe size={20} strokeWidth={2} />
