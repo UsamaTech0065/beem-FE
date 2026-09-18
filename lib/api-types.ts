@@ -63,6 +63,31 @@ export type StreamConnection = {
   hostIdentity: string
 }
 
+/** ---- direct messages ---- */
+
+export type ChatPeer = PublicUser & {
+  /** Their live stream id when they are on air; drives the green dot. */
+  liveStreamId: string | null
+}
+
+export type DmMessage = {
+  id: string
+  senderId: string
+  /** HI is the wave from "Say hi", drawn as a greeting rather than a bubble. */
+  kind: 'TEXT' | 'HI'
+  text: string
+  createdAt: string
+}
+
+export type DmConversation = {
+  id: string
+  peer: ChatPeer
+  favorite: boolean
+  unreadCount: number
+  lastMessage: DmMessage | null
+  lastMessageAt: string
+}
+
 /** Creator dashboard numbers for the signed-in user. */
 export type CreatorStats = {
   followerCount: number

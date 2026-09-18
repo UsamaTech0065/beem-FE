@@ -31,7 +31,7 @@ export async function resolveAccessToken(): Promise<string | null> {
 }
 
 type ForwardOptions = {
-  method?: 'POST' | 'PATCH' | 'DELETE'
+  method?: 'GET' | 'POST' | 'PATCH' | 'DELETE'
   body?: unknown
   /** 'required' answers 401 without a session; 'optional' forwards anonymously. */
   auth: 'required' | 'optional'

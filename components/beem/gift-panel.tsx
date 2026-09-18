@@ -7,7 +7,9 @@ import { compactNumber } from './account-nav'
  * The catalogue is static until the coin ledger exists. Prices mirror the
  * reference so the layout is real; sending is what is still to come.
  */
-const GIFTS: { name: string; emoji: string; coins: number; free?: boolean }[] = [
+export type GiftItem = { name: string; emoji: string; coins: number; free?: boolean }
+
+export const GIFTS: GiftItem[] = [
   { name: 'Heart', emoji: '❤️', coins: 8, free: true },
   { name: 'Ice cream', emoji: '🍦', coins: 39 },
   { name: 'Strawberry', emoji: '🍓', coins: 59 },
