@@ -24,12 +24,13 @@ import {
   X,
 } from 'lucide-react'
 import { formatDiamonds, type CurrentUser, type RtmpIngress, type StreamDetail } from '@/lib/api-types'
-import { useLiveRoom } from '@/lib/use-live-room'
 import { ObsGuide } from './broadcast-studio'
 import { GiftPanel } from './gift-panel'
 import { LiveChat } from './live-chat'
 import { LiveEnded } from './live-ended'
+import { useLiveSession } from './live-session'
 import { SignInDialog } from './sign-in-dialog'
+import { TrackVideo } from './track-media'
 
 const FALLBACK_AVATAR = '/placeholder-user.jpg'
 
@@ -40,10 +41,14 @@ type Props = {
   studio: boolean
 }
 
-/** The watch and broadcast surface for one stream. The role comes from the token the API issues. */
+/**
+ * The watch and broadcast surface for one stream. The connection itself lives
+ * in LiveSessionProvider: leaving this page keeps it running in the mini
+ * player, and only Close there, or End here, actually leaves the room.
+ */
 export function StreamRoom({ stream, user, studio }: Props) {
   const router = useRouter()
-  const room = useLiveRoom(stream.id, user ? { name: user.displayName, avatarUrl: user.avatarUrl } : null, { studio })
+  const { session, room, open, close } = useLiveSession()
 
   const [uiHidden, setUiHidden] = useState(false)
   const [giftsOpen, setGiftsOpen] = useState(false)
@@ -55,8 +60,16 @@ export function StreamRoom({ stream, user, studio }: Props) {
   const [toast, setToast] = useState<string | null>(null)
   const [ingress, setIngress] = useState<RtmpIngress | null>(null)
 
-  const isHost = room.role === 'host'
-  const over = room.phase === 'ended' || room.phase === 'error'
+  // Join (or re-attach to) the room. Runs again if the visitor signs in, so chat carries their name.
+  useEffect(() => {
+    open(stream, studio, user ? { name: user.displayName, avatarUrl: user.avatarUrl } : null)
+  }, [open, stream, studio, user])
+
+  const attached = session?.stream.id === stream.id
+  const isHost = attached && room.role === 'host'
+  const publishes = isHost && !studio
+  const phase = attached ? room.phase : 'connecting'
+  const over = phase === 'ended' || phase === 'error'
 
   // OBS host: fetch the server and key so they can be pasted into the encoder.
   useEffect(() => {
@@ -102,11 +115,17 @@ export function StreamRoom({ stream, user, studio }: Props) {
     }
   }
 
+  /** Back keeps watching in the mini player; the provider notices the route change. */
+  function minimise() {
+    if (over) close()
+    router.push('/')
+  }
+
   async function endStream() {
     if (!window.confirm('End your live stream for everyone?')) return
     setEnding(true)
     await fetch(`/api/streams/${encodeURIComponent(stream.id)}/end`, { method: 'POST' }).catch(() => null)
-    room.leave()
+    close()
     setEnding(false)
     router.refresh()
   }
@@ -116,24 +135,20 @@ export function StreamRoom({ stream, user, studio }: Props) {
     setToast(`${gift.name} needs ${gift.coins} coins. Coins and gifting arrive in the next update.`)
   }
 
-  const showBackdrop = stream.thumbnailUrl && room.phase !== 'live'
+  const showPoster = stream.thumbnailUrl && phase !== 'live'
 
   return (
     <div className={`live${uiHidden ? ' is-ui-hidden' : ''}${isHost ? ' is-host' : ''}`}>
       {/* The same picture twice: blurred across the whole page, sharp in the middle. */}
-      <video ref={room.backdropRef} className="live-bg" autoPlay playsInline muted aria-hidden="true" />
-      {showBackdrop && <img src={stream.thumbnailUrl!} alt="" className="live-bg live-bg--image" aria-hidden="true" />}
+      <TrackVideo track={attached ? room.videoTrack : null} className="live-bg" aria-hidden="true" />
+      {showPoster && <img src={stream.thumbnailUrl!} alt="" className="live-bg live-bg--image" aria-hidden="true" />}
 
-      <div className="live-stage">
-        <video
-          ref={room.videoRef}
-          className={`live-video${isHost && !studio && room.facingUser ? ' is-mirrored' : ''}`}
-          autoPlay
-          playsInline
-          muted
-          hidden={room.phase !== 'live'}
+      <div className="live-stage" onClick={() => uiHidden && setUiHidden(false)}>
+        <TrackVideo
+          track={attached ? room.videoTrack : null}
+          className={`live-video${publishes && room.facingUser ? ' is-mirrored' : ''}`}
+          hidden={phase !== 'live'}
         />
-        {!(isHost && !studio) && <audio ref={room.audioRef} autoPlay />}
 
         {/* Host chip over the picture, with follow for everyone but the host. */}
         {!over && (
@@ -161,13 +176,13 @@ export function StreamRoom({ stream, user, studio }: Props) {
         )}
 
         <div className="live-status" aria-live="polite">
-          {room.phase === 'connecting' && (
+          {phase === 'connecting' && (
             <>
               <Loader2 size={34} className="auth-spin" />
               <p>{isHost ? (studio ? 'Waiting for OBS' : 'Starting your live') : 'Joining'}</p>
             </>
           )}
-          {room.phase === 'waiting' && (
+          {phase === 'waiting' && (
             <>
               <VideoOff size={34} strokeWidth={1.6} />
               <p>
@@ -179,18 +194,18 @@ export function StreamRoom({ stream, user, studio }: Props) {
               </p>
             </>
           )}
-          {room.phase === 'ended' &&
+          {phase === 'ended' &&
             (isHost ? (
               <LiveEnded peakViewers={room.peakViewers} diamonds={formatDiamonds(stream.diamondsTotal)} />
             ) : (
               <>
                 <h2>This live has ended</h2>
-                <Link href="/" className="acct-btn acct-btn--primary">
+                <Link href="/" className="acct-btn acct-btn--primary" onClick={close}>
                   Find another live
                 </Link>
               </>
             ))}
-          {room.phase === 'error' && (
+          {phase === 'error' && (
             <>
               <h2>Something went wrong</h2>
               <p>{room.error}</p>
@@ -201,7 +216,7 @@ export function StreamRoom({ stream, user, studio }: Props) {
           )}
         </div>
 
-        {room.audioBlocked && room.phase === 'live' && (
+        {room.audioBlocked && phase === 'live' && (
           <button type="button" className="live-unmute" onClick={room.unblockAudio}>
             <Volume2 size={18} /> Tap for sound
           </button>
@@ -209,9 +224,9 @@ export function StreamRoom({ stream, user, studio }: Props) {
       </div>
 
       {/* ---- overlays ---- */}
-      <Link href="/" className="live-round live-back" aria-label="Back">
+      <button type="button" className="live-round live-back" onClick={minimise} aria-label="Back, keep watching in the mini player">
         <ArrowLeft size={22} />
-      </Link>
+      </button>
 
       {isHost && !over && (
         <div className="live-stats" title="Watching now and diamonds this live">
@@ -228,9 +243,9 @@ export function StreamRoom({ stream, user, studio }: Props) {
         {isHost ? (
           <>
             {!over && (
-              <span className={`live-pill${room.phase === 'live' ? ' is-live' : ''}`}>
+              <span className={`live-pill${phase === 'live' ? ' is-live' : ''}`}>
                 <span className="live-dot" aria-hidden="true" />
-                {room.phase === 'live' ? 'LIVE' : 'Starting live...'}
+                {phase === 'live' ? 'LIVE' : 'Starting live...'}
               </span>
             )}
             {room.canFlipCamera && room.cameraOn && !studio && (
@@ -253,12 +268,18 @@ export function StreamRoom({ stream, user, studio }: Props) {
               <Eye size={16} fill="currentColor" strokeWidth={0} /> {room.viewerCount}
             </span>
             <button type="button" className="live-round live-round--coin" onClick={() => setGiftsOpen(true)} aria-label="Send a gift">
-              <span className="tg-coin" aria-hidden="true" />
+              <span className="tg-coin tg-coin--lg" aria-hidden="true" />
             </button>
             <button type="button" className="live-round" onClick={room.toggleMuted} aria-label={room.muted ? 'Unmute' : 'Mute'}>
               {room.muted ? <VolumeX size={20} /> : <Volume2 size={20} />}
             </button>
-            <button type="button" className="live-round" onClick={() => setUiHidden((h) => !h)} aria-label={uiHidden ? 'Show controls' : 'Hide controls'}>
+            <button
+              type="button"
+              className={`live-round live-eye${uiHidden ? ' is-on' : ''}`}
+              onClick={() => setUiHidden((hidden) => !hidden)}
+              aria-pressed={uiHidden}
+              aria-label={uiHidden ? 'Show chat and controls' : 'Hide chat and controls'}
+            >
               {uiHidden ? <Eye size={20} /> : <EyeOff size={20} />}
             </button>
             <button type="button" className="live-round" onClick={share} aria-label="Share">
@@ -277,16 +298,16 @@ export function StreamRoom({ stream, user, studio }: Props) {
             </p>
           )}
           <LiveChat
-            messages={room.messages}
+            messages={attached ? room.messages : []}
             me={user ? { avatarUrl: user.avatarUrl } : null}
             onSend={room.sendChat}
             onSignIn={() => setSignInOpen(true)}
-            disabled={room.phase === 'connecting'}
+            disabled={phase === 'connecting'}
           />
         </div>
       )}
 
-      {isHost && !studio && !over && (
+      {publishes && !over && (
         <div className="live-controls">
           <button
             type="button"

@@ -164,7 +164,10 @@
 .live-toast { position: absolute; bottom: 90px; left: 50%; z-index: 8; max-width: min(90%, 420px); transform: translateX(-50%); border-radius: 12px; background: rgba(0,0,0,.8); padding: 12px 16px; font-size: 14px; font-weight: 600; text-align: center; backdrop-filter: blur(8px); }
 
 /* Hide-controls mode keeps only the picture and the way out. */
-.live.is-ui-hidden .live-chip, .live.is-ui-hidden .live-bottom-left, .live.is-ui-hidden .live-gift, .live.is-ui-hidden .live-viewers, .live.is-ui-hidden .gifts { display: none; }
+/* Hide-controls mode: only the picture, the back arrow and the eye remain. Tapping the picture brings everything back. */
+.live.is-ui-hidden .live-chip, .live.is-ui-hidden .live-bottom-left, .live.is-ui-hidden .live-gift, .live.is-ui-hidden .gifts,
+.live.is-ui-hidden .live-actions > :not(.live-eye) { display: none; }
+.live-eye.is-on { background: #fff; color: #17171c; }
 
 /* ---- chat ---- */
 .chat { display: grid; gap: 10px; }
@@ -181,6 +184,8 @@
 .chat-box--signin { width: 100%; color: rgba(255,255,255,.75); font-size: 15px; text-align: left; }
 .chat-icon { display: grid; width: 36px; height: 36px; place-items: center; border-radius: 50%; color: rgba(255,255,255,.8); }
 .chat-icon:disabled { opacity: .5; cursor: not-allowed; }
+.chat-icon.is-on { background: rgba(255,255,255,.22); color: #fff; }
+.chat-box { position: relative; }
 .chat-send { background: var(--primary); color: #fff; }
 
 /* ---- gifts ---- */
@@ -196,7 +201,7 @@
 .gift { position: relative; display: grid; justify-items: center; gap: 6px; border-radius: 12px; padding: 12px 4px 10px; color: #fff; transition: background .15s; }
 .gift:hover { background: rgba(255,255,255,.1); }
 .gift-emoji { font-size: 30px; line-height: 1; }
-.gift-price { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; }
+.gift-price { display: inline-flex; align-items: center; gap: 4px; color: #fff; font-size: 13px; font-weight: 800; }
 .gift-price .tg-coin { width: 12px; height: 12px; }
 .gift-free { position: absolute; top: 2px; left: 50%; transform: translateX(-50%); border-radius: 6px; background: rgba(255,255,255,.18); padding: 1px 6px; font-size: 10px; font-weight: 800; }
 
@@ -216,6 +221,28 @@
 .ended-submit:disabled { color: rgba(255,255,255,.4); cursor: not-allowed; }
 .ended-thanks { margin: 16px 0 0; color: rgba(255,255,255,.8); }
 .ended .acct-btn { margin-top: 26px; }
+
+/* ---- emoji picker ---- */
+.emoji-picker { position: absolute; right: 0; bottom: calc(100% + 10px); z-index: 20; display: grid; grid-template-columns: repeat(8, 36px); gap: 2px; border-radius: 16px; padding: 10px; box-shadow: 0 14px 40px rgba(0,0,0,.35); }
+.emoji-picker button { display: grid; width: 36px; height: 36px; place-items: center; border-radius: 10px; font-size: 22px; line-height: 1; transition: background .12s; }
+.emoji-picker--dark { background: rgba(23,23,28,.96); backdrop-filter: blur(12px); }
+.emoji-picker--dark button:hover { background: rgba(255,255,255,.14); }
+.emoji-picker--light { border: 1px solid var(--border); background: var(--background); }
+.emoji-picker--light button:hover { background: var(--secondary); }
+
+/* ---- mini player ---- */
+.pip { position: fixed; right: 18px; bottom: 18px; z-index: 55; width: 190px; aspect-ratio: 9 / 14; overflow: hidden; border-radius: 16px; background: #17171c; color: #fff; box-shadow: 0 18px 50px rgba(0,0,0,.4); isolation: isolate; }
+.pip-stage { position: absolute; inset: 0; display: block; width: 100%; height: 100%; cursor: pointer; }
+.pip-video, .pip-poster { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.pip-top { position: absolute; top: 8px; right: 8px; left: 8px; z-index: 2; display: flex; align-items: center; gap: 6px; }
+.pip-live { display: inline-flex; align-items: center; gap: 5px; border-radius: 6px; background: var(--primary); padding: 2px 7px; font-size: 10px; font-weight: 800; letter-spacing: .06em; }
+.pip-live .live-dot { width: 6px; height: 6px; background: #fff; animation: none; }
+.pip-viewers { display: inline-flex; align-items: center; gap: 4px; margin-right: auto; border-radius: 999px; background: rgba(0,0,0,.5); padding: 3px 8px; font-size: 11px; font-weight: 700; }
+.pip-btn { display: grid; width: 28px; height: 28px; place-items: center; border-radius: 50%; background: rgba(0,0,0,.55); color: #fff; transition: background .15s; }
+.pip-btn:hover { background: rgba(255,255,255,.25); }
+.pip-bottom { position: absolute; right: 8px; bottom: 8px; left: 8px; z-index: 2; display: flex; align-items: center; gap: 8px; pointer-events: none; }
+.pip-bottom img { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; }
+.pip-bottom strong { overflow: hidden; font-size: 13px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; text-shadow: 0 1px 4px rgba(0,0,0,.6); }
 
 /* ---- cards are links ---- */
 .stream-card-link, .story-card-link { display: block; border-radius: 14px; }
@@ -303,6 +330,8 @@
   .live-controls { bottom: calc(16px + env(safe-area-inset-bottom)); }
   .live.is-host .live-bottom-left { bottom: calc(86px + env(safe-area-inset-bottom)); right: 12px; }
   .live-gift { right: 14px; bottom: calc(14px + env(safe-area-inset-bottom)); }
+  .pip { right: 10px; bottom: calc(150px + env(safe-area-inset-bottom)); width: 132px; }
+  .emoji-picker { grid-template-columns: repeat(6, 36px); }
   .live-side, .gifts { top: auto; right: 0; bottom: 0; left: 0; width: auto; max-height: 60vh; max-height: 60dvh; border-radius: 18px 18px 0 0; padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
   .chat-list { max-height: 26vh; }
   .live-legal { display: none; }

@@ -113,7 +113,8 @@
 .composer-input { display: flex; flex: 1; min-width: 0; align-items: center; gap: 8px; height: 46px; border: 1px solid var(--border); border-radius: 999px; padding: 0 6px 0 18px; }
 .composer-input input { min-width: 0; flex: 1; background: transparent; font-size: 15px; outline: none; }
 .composer-emoji { display: grid; width: 36px; height: 36px; place-items: center; border-radius: 50%; color: var(--muted-foreground); }
-.composer-emoji:disabled { opacity: .5; cursor: not-allowed; }
+.composer-emoji.is-on { background: var(--secondary); color: var(--foreground); }
+.composer-input { position: relative; }
 .composer-icon { display: grid; width: 42px; height: 42px; flex: 0 0 auto; place-items: center; border-radius: 50%; color: var(--foreground); transition: background .15s; }
 .composer-icon:hover:not(:disabled) { background: var(--secondary); }
 .composer-icon:disabled { opacity: .4; cursor: not-allowed; }

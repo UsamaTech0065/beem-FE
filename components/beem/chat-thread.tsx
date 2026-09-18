@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import type { CurrentUser, DmConversation, DmMessage } from '@/lib/api-types'
 import { ChatContentPacks } from './chat-content-packs'
+import { EmojiPicker } from './emoji-picker'
 import { GIFTS } from './gift-panel'
 
 /** How often an open thread asks for newer messages. */
@@ -43,7 +44,9 @@ export function ChatThread({ me, conversation, onBack, onChanged }: Props) {
   const [packsOpen, setPacksOpen] = useState(false)
   const [giftsOpen, setGiftsOpen] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
+  const [emojiOpen, setEmojiOpen] = useState(false)
   const scroller = useRef<HTMLDivElement | null>(null)
+  const draftInput = useRef<HTMLInputElement | null>(null)
   const newestRef = useRef<string | null>(null)
 
   const conversationId = conversation?.id ?? null
@@ -278,15 +281,32 @@ export function ChatThread({ me, conversation, onBack, onChanged }: Props) {
 
             <label className="composer-input">
               <input
+                ref={draftInput}
                 value={draft}
                 onChange={(event) => setDraft(event.target.value)}
                 placeholder="Message..."
                 aria-label="Message"
                 maxLength={2000}
               />
-              <button type="button" className="composer-emoji" aria-label="Emoji" disabled title="Coming soon">
+              <button
+                type="button"
+                className={`composer-emoji${emojiOpen ? ' is-on' : ''}`}
+                aria-label="Emoji"
+                aria-expanded={emojiOpen}
+                data-emoji-toggle
+                onClick={() => setEmojiOpen((open) => !open)}
+              >
                 <Smile size={22} strokeWidth={1.9} />
               </button>
+              {emojiOpen && (
+                <EmojiPicker
+                  onPick={(emoji) => {
+                    setDraft((current) => `${current}${emoji}`)
+                    draftInput.current?.focus()
+                  }}
+                  onClose={() => setEmojiOpen(false)}
+                />
+              )}
             </label>
 
             {draft.trim() ? (

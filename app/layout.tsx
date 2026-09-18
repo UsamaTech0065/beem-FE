@@ -1,5 +1,6 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
+import { LiveSessionProvider } from '@/components/beem/live-session'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -41,7 +42,8 @@ export default function RootLayout({
       {/* Browser extensions (ColorZilla, Grammarly, ...) add attributes to <body>
           before React hydrates; suppress the resulting one-node mismatch warning. */}
       <body className="antialiased" suppressHydrationWarning>
-        {children}
+        {/* The live room outlives the stream page so it can shrink to a mini player. */}
+        <LiveSessionProvider>{children}</LiveSessionProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>

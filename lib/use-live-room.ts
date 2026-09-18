@@ -1,10 +1,12 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { Participant, RemoteTrack, Room, Track as LkTrack } from 'livekit-client'
+import type { Participant, Room, Track } from 'livekit-client'
 import type { StreamConnection } from './api-types'
 
 export type LivePhase =
+  /** Nothing to connect to. */
+  | 'idle'
   /** Fetching a token and connecting. */
   | 'connecting'
   /** In the room, but the host is not sending video (not joined yet, or camera off). */
@@ -44,12 +46,12 @@ export type LiveRoom = {
   /** Host only: the front camera is in use, so the self-view should be mirrored. */
   facingUser: boolean
   messages: ChatMessage[]
-  /** Attach to the <video> that shows the host. */
-  videoRef: React.RefObject<HTMLVideoElement | null>
-  /** Optional second <video> that receives the same picture, for a blurred backdrop. */
-  backdropRef: React.RefObject<HTMLVideoElement | null>
-  /** Attach to the <audio> that plays the host. Unused for the host themselves. */
-  audioRef: React.RefObject<HTMLAudioElement | null>
+  /**
+   * The host's picture and sound, as tracks rather than elements, so the same
+   * stream can show in the room page and in the mini player without reconnecting.
+   */
+  videoTrack: Track | null
+  audioTrack: Track | null
   toggleMic: () => Promise<void>
   toggleCamera: () => Promise<void>
   /** Switches between the front and back cameras without dropping the stream. */
@@ -61,9 +63,9 @@ export type LiveRoom = {
   leave: () => void
 }
 
-type ChatSender = { name: string; avatarUrl: string | null }
+export type ChatSender = { name: string; avatarUrl: string | null }
 
-type Options = {
+export type LiveRoomOptions = {
   /** Host only: watch the encoder's feed (OBS) instead of publishing the browser's camera. */
   studio?: boolean
 }
@@ -74,13 +76,15 @@ const CHAT_MAX_LENGTH = 200
 
 /**
  * Connects to a stream's LiveKit room and keeps the view state in step with it.
+ * A null streamId means "not in any room".
  *
  * livekit-client is imported inside the effect, so its ~300 kB stays out of
- * every bundle except the one that actually opens a room.
+ * every bundle until a room actually opens.
  */
-export function useLiveRoom(streamId: string, sender: ChatSender | null, options: Options = {}): LiveRoom {
+export function useLiveRoom(streamId: string | null, sender: ChatSender | null, options: LiveRoomOptions = {}): LiveRoom {
   const studio = Boolean(options.studio)
-  const [phase, setPhase] = useState<LivePhase>('connecting')
+
+  const [phase, setPhase] = useState<LivePhase>('idle')
   const [error, setError] = useState<string | null>(null)
   const [role, setRole] = useState<StreamConnection['role'] | null>(null)
   const [viewerCount, setViewerCount] = useState(0)
@@ -92,10 +96,9 @@ export function useLiveRoom(streamId: string, sender: ChatSender | null, options
   const [canFlipCamera, setCanFlipCamera] = useState(false)
   const [facingUser, setFacingUser] = useState(true)
   const [messages, setMessages] = useState<ChatMessage[]>([])
+  const [videoTrack, setVideoTrack] = useState<Track | null>(null)
+  const [audioTrack, setAudioTrack] = useState<Track | null>(null)
 
-  const videoRef = useRef<HTMLVideoElement | null>(null)
-  const backdropRef = useRef<HTMLVideoElement | null>(null)
-  const audioRef = useRef<HTMLAudioElement | null>(null)
   const roomRef = useRef<Room | null>(null)
   const hostIdentityRef = useRef<string | null>(null)
   // The library is imported on demand; callbacks outside the effect reach it here.
@@ -104,10 +107,26 @@ export function useLiveRoom(streamId: string, sender: ChatSender | null, options
   senderRef.current = sender
 
   useEffect(() => {
+    if (!streamId) {
+      setPhase('idle')
+      return
+    }
+
     // React runs effects twice in development; `cancelled` makes the first,
     // abandoned run inert instead of fighting the second over the elements.
     let cancelled = false
     let room: Room | null = null
+
+    setPhase('connecting')
+    setError(null)
+    setRole(null)
+    setViewerCount(0)
+    setPeakViewers(0)
+    setMessages([])
+    setVideoTrack(null)
+    setAudioTrack(null)
+    setCanFlipCamera(false)
+    setFacingUser(true)
 
     const fail = (message: string) => {
       if (cancelled) return
@@ -116,7 +135,7 @@ export function useLiveRoom(streamId: string, sender: ChatSender | null, options
     }
 
     async function start() {
-      const response = await fetch(`/api/streams/${encodeURIComponent(streamId)}/token`, {
+      const response = await fetch(`/api/streams/${encodeURIComponent(streamId!)}/token`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ studio }),
@@ -162,13 +181,12 @@ export function useLiveRoom(streamId: string, sender: ChatSender | null, options
         setPeakViewers((peak) => Math.max(peak, count))
       }
 
-      const attach = (track: RemoteTrack | LkTrack) => {
+      const take = (track: Track) => {
         if (track.kind === Track.Kind.Video) {
-          if (videoRef.current) track.attach(videoRef.current)
-          if (backdropRef.current) track.attach(backdropRef.current)
+          setVideoTrack(track)
           setPhase('live')
-        } else if (track.kind === Track.Kind.Audio && audioRef.current) {
-          track.attach(audioRef.current)
+        } else if (track.kind === Track.Kind.Audio) {
+          setAudioTrack(track)
         }
       }
 
@@ -176,11 +194,16 @@ export function useLiveRoom(streamId: string, sender: ChatSender | null, options
 
       room
         .on(RoomEvent.TrackSubscribed, (track, _publication, participant) => {
-          if (!cancelled && fromHost(participant)) attach(track)
+          if (!cancelled && fromHost(participant)) take(track)
         })
         .on(RoomEvent.TrackUnsubscribed, (track, _publication, participant) => {
-          track.detach()
-          if (!cancelled && fromHost(participant) && track.kind === Track.Kind.Video) setPhase('waiting')
+          if (cancelled || !fromHost(participant)) return
+          if (track.kind === Track.Kind.Video) {
+            setVideoTrack(null)
+            setPhase('waiting')
+          } else if (track.kind === Track.Kind.Audio) {
+            setAudioTrack(null)
+          }
         })
         .on(RoomEvent.TrackMuted, (publication, participant) => {
           if (!cancelled && !publishes && fromHost(participant) && publication.kind === Track.Kind.Video) setPhase('waiting')
@@ -200,6 +223,8 @@ export function useLiveRoom(streamId: string, sender: ChatSender | null, options
         })
         .on(RoomEvent.Disconnected, (reason) => {
           if (cancelled) return
+          setVideoTrack(null)
+          setAudioTrack(null)
           // The host ended it (room deleted), or the API removed us: it is over.
           if (reason === DisconnectReason.ROOM_DELETED || reason === DisconnectReason.PARTICIPANT_REMOVED) {
             setPhase('ended')
@@ -218,7 +243,7 @@ export function useLiveRoom(streamId: string, sender: ChatSender | null, options
         await room.localParticipant.enableCameraAndMicrophone()
         if (cancelled) return void room.disconnect()
         const camera = room.localParticipant.getTrackPublication(Track.Source.Camera)?.videoTrack
-        if (camera) attach(camera)
+        if (camera) take(camera)
         setMicOn(room.localParticipant.isMicrophoneEnabled)
         setCameraOn(room.localParticipant.isCameraEnabled)
         // Device labels are only populated once permission is granted, so this
@@ -233,7 +258,7 @@ export function useLiveRoom(streamId: string, sender: ChatSender | null, options
       for (const participant of room.remoteParticipants.values()) {
         if (!fromHost(participant)) continue
         for (const publication of participant.trackPublications.values()) {
-          if (publication.track && !publication.isMuted) attach(publication.track)
+          if (publication.track && !publication.isMuted) take(publication.track)
         }
       }
     }
@@ -285,12 +310,7 @@ export function useLiveRoom(streamId: string, sender: ChatSender | null, options
     await roomRef.current?.startAudio()
   }, [])
 
-  const toggleMuted = useCallback(() => {
-    setMuted((current) => {
-      if (audioRef.current) audioRef.current.muted = !current
-      return !current
-    })
-  }, [])
+  const toggleMuted = useCallback(() => setMuted((current) => !current), [])
 
   const sendChat = useCallback(async (raw: string) => {
     const room = roomRef.current
@@ -334,9 +354,8 @@ export function useLiveRoom(streamId: string, sender: ChatSender | null, options
     canFlipCamera,
     facingUser,
     messages,
-    videoRef,
-    backdropRef,
-    audioRef,
+    videoTrack,
+    audioTrack,
     toggleMic,
     toggleCamera,
     flipCamera,

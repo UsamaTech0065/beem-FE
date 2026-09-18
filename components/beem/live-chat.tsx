@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { SendHorizontal, Smile } from 'lucide-react'
 import type { ChatMessage } from '@/lib/use-live-room'
+import { EmojiPicker } from './emoji-picker'
 
 const FALLBACK_AVATAR = '/placeholder-user.jpg'
 
@@ -18,7 +19,9 @@ type Props = {
 /** Room chat: the last messages above a "Say something" box, bottom-left like the reference. */
 export function LiveChat({ messages, me, onSend, onSignIn, disabled = false }: Props) {
   const [text, setText] = useState('')
+  const [emojiOpen, setEmojiOpen] = useState(false)
   const list = useRef<HTMLOListElement | null>(null)
+  const input = useRef<HTMLInputElement | null>(null)
 
   // Follow new messages unless the reader has scrolled up to read older ones.
   useEffect(() => {
@@ -33,7 +36,13 @@ export function LiveChat({ messages, me, onSend, onSignIn, disabled = false }: P
     const value = text.trim()
     if (!value) return
     setText('')
+    setEmojiOpen(false)
     await onSend(value)
+  }
+
+  function addEmoji(emoji: string) {
+    setText((current) => `${current}${emoji}`)
+    input.current?.focus()
   }
 
   return (
@@ -53,6 +62,7 @@ export function LiveChat({ messages, me, onSend, onSignIn, disabled = false }: P
         <form className="chat-box" onSubmit={submit}>
           <img src={me.avatarUrl ?? FALLBACK_AVATAR} alt="" />
           <input
+            ref={input}
             value={text}
             onChange={(event) => setText(event.target.value)}
             placeholder="Say something..."
@@ -60,7 +70,14 @@ export function LiveChat({ messages, me, onSend, onSignIn, disabled = false }: P
             maxLength={200}
             disabled={disabled}
           />
-          <button type="button" className="chat-icon" aria-label="Emoji" disabled title="Coming soon">
+          <button
+            type="button"
+            className={`chat-icon${emojiOpen ? ' is-on' : ''}`}
+            aria-label="Emoji"
+            aria-expanded={emojiOpen}
+            data-emoji-toggle
+            onClick={() => setEmojiOpen((open) => !open)}
+          >
             <Smile size={22} strokeWidth={1.8} />
           </button>
           {text.trim() && (
@@ -68,6 +85,7 @@ export function LiveChat({ messages, me, onSend, onSignIn, disabled = false }: P
               <SendHorizontal size={20} />
             </button>
           )}
+          {emojiOpen && <EmojiPicker tone="dark" onPick={addEmoji} onClose={() => setEmojiOpen(false)} />}
         </form>
       ) : (
         <button type="button" className="chat-box chat-box--signin" onClick={onSignIn}>
