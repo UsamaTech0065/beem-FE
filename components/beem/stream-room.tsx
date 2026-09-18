@@ -25,7 +25,7 @@ import {
 } from 'lucide-react'
 import { formatDiamonds, type CurrentUser, type RtmpIngress, type StreamDetail } from '@/lib/api-types'
 import { ObsGuide } from './broadcast-studio'
-import { GiftPanel } from './gift-panel'
+import { GIFTS, GiftPanel } from './gift-panel'
 import { LiveChat } from './live-chat'
 import { LiveEnded } from './live-ended'
 import { useLiveSession } from './live-session'
@@ -33,6 +33,9 @@ import { SignInDialog } from './sign-in-dialog'
 import { TrackVideo } from './track-media'
 import { CoinIcon, EyeFilled } from './icons'
 import { UserAvatar } from './user-avatar'
+
+/** The cheapest gifts, in price order, for the rail down the right edge. */
+const RAIL_GIFTS = [...GIFTS].sort((a, b) => a.coins - b.coins).slice(0, 8)
 
 type Props = {
   stream: StreamDetail
@@ -344,9 +347,39 @@ export function StreamRoom({ stream, user, studio }: Props) {
           {giftsOpen ? (
             <GiftPanel balance={0} onClose={() => setGiftsOpen(false)} onPick={pickGift} />
           ) : (
-            <button type="button" className="live-round live-round--lg live-gift" onClick={() => setGiftsOpen(true)} aria-label="Gifts">
-              <Gift size={24} />
-            </button>
+            // The quick-gift rail: one tap to send the common gifts, with the
+            // full catalogue a tap away at the bottom.
+            <div className="gift-rail" aria-label="Quick gifts">
+              <div className="gift-rail-list">
+                {!following && (
+                  <button type="button" className="gift-rail-item" onClick={toggleFollow} disabled={followBusy}>
+                    <span className="gift-rail-follow" aria-hidden="true">
+                      Follow
+                    </span>
+                    <span className="gift-rail-price">Free</span>
+                  </button>
+                )}
+                {RAIL_GIFTS.map((gift) => (
+                  <button
+                    type="button"
+                    key={gift.name}
+                    className="gift-rail-item"
+                    onClick={() => pickGift(gift)}
+                    aria-label={`Send ${gift.name} for ${gift.coins} coins`}
+                  >
+                    <span className="gift-rail-emoji" aria-hidden="true">
+                      {gift.emoji}
+                    </span>
+                    <span className="gift-rail-price">
+                      <CoinIcon /> {gift.coins.toLocaleString()}
+                    </span>
+                  </button>
+                ))}
+              </div>
+              <button type="button" className="live-round live-round--lg gift-rail-more" onClick={() => setGiftsOpen(true)} aria-label="All gifts">
+                <Gift size={24} />
+              </button>
+            </div>
           )}
         </>
       )}

@@ -160,12 +160,24 @@
 .live-controls { position: absolute; bottom: 22px; left: 50%; z-index: 5; display: flex; gap: 14px; transform: translateX(-50%); }
 .live-side { position: absolute; top: 80px; right: 18px; bottom: 18px; z-index: 5; width: 320px; overflow-y: auto; border-radius: 18px; background: rgba(23,23,28,.92); padding: 18px; backdrop-filter: blur(14px); }
 .live-side .studio-block h2 { font-size: 19px; }
-.live-gift { position: absolute; right: 22px; bottom: 22px; z-index: 5; background: #fff; color: #17171c; }
+/* Quick-gift rail down the right edge; the full catalogue opens from the button at its foot. */
+.gift-rail { position: absolute; top: 84px; right: 14px; bottom: 18px; z-index: 5; display: flex; width: 72px; flex-direction: column; align-items: center; gap: 12px; }
+.gift-rail-list { display: flex; min-height: 0; flex: 1; flex-direction: column; align-items: center; gap: 6px; overflow-y: auto; padding: 6px 0 18px; scrollbar-width: none; mask-image: linear-gradient(to bottom, #000 88%, transparent); }
+.gift-rail-list::-webkit-scrollbar { display: none; }
+.gift-rail-item { display: grid; width: 64px; flex: 0 0 auto; justify-items: center; gap: 3px; border-radius: 14px; padding: 6px 2px; color: #fff; transition: background .15s, transform .15s; }
+.gift-rail-item:hover:not(:disabled) { background: rgba(255,255,255,.12); transform: scale(1.06); }
+.gift-rail-item:disabled { opacity: .6; }
+.gift-rail-emoji { font-size: 38px; line-height: 1; filter: drop-shadow(0 2px 6px rgba(0,0,0,.45)); }
+.gift-rail-follow { display: grid; width: 46px; height: 40px; place-items: center; border-radius: 50% 50% 46% 46%; background: linear-gradient(180deg, #ff5aa5, #ff2d87); font-size: 11px; font-weight: 800; box-shadow: 0 4px 12px rgba(255,45,135,.45); }
+.gift-rail-price { display: inline-flex; align-items: center; gap: 3px; font-size: 12px; font-weight: 800; text-shadow: 0 1px 4px rgba(0,0,0,.7); }
+.gift-rail-price .tg-coin { width: 13px; height: 13px; }
+.gift-rail-more { flex: 0 0 auto; background: #fff; color: #17171c; }
+.gift-rail-more:hover:not(:disabled) { background: #f2f2f5; }
 .live-toast { position: absolute; bottom: 90px; left: 50%; z-index: 8; max-width: min(90%, 420px); transform: translateX(-50%); border-radius: 12px; background: rgba(0,0,0,.8); padding: 12px 16px; font-size: 14px; font-weight: 600; text-align: center; backdrop-filter: blur(8px); }
 
 /* Hide-controls mode keeps only the picture and the way out. */
 /* Hide-controls mode: only the picture, the back arrow and the eye remain. Tapping the picture brings everything back. */
-.live.is-ui-hidden .live-chip, .live.is-ui-hidden .live-bottom-left, .live.is-ui-hidden .live-gift, .live.is-ui-hidden .gifts,
+.live.is-ui-hidden .live-chip, .live.is-ui-hidden .live-bottom-left, .live.is-ui-hidden .gift-rail, .live.is-ui-hidden .gifts,
 .live.is-ui-hidden .live-actions > :not(.live-eye) { display: none; }
 .live-eye.is-on { background: #fff; color: #17171c; }
 
@@ -328,11 +340,16 @@
   .live-actions .live-round { width: 40px; height: 40px; }
   .live-viewers { height: 40px; padding: 0 12px; font-size: 14px; }
   .live-state { height: 40px; padding: 0 14px; font-size: 13px; }
-  .live-chip { right: 12px; bottom: 90px; left: 12px; }
+  /* Stops short of the gift rail, so the follow button is never underneath it. */
+  .live-chip { right: 74px; bottom: 90px; left: 12px; }
   .live-bottom-left { right: 80px; bottom: calc(12px + env(safe-area-inset-bottom)); left: 12px; width: auto; }
   .live-controls { bottom: calc(16px + env(safe-area-inset-bottom)); }
   .live.is-host .live-bottom-left { bottom: calc(86px + env(safe-area-inset-bottom)); right: 12px; }
-  .live-gift { right: 14px; bottom: calc(14px + env(safe-area-inset-bottom)); }
+  /* On a phone the rail is narrower and starts lower, clear of the top buttons. */
+  .gift-rail { top: 70px; right: 6px; bottom: calc(12px + env(safe-area-inset-bottom)); width: 58px; gap: 8px; }
+  .gift-rail-item { width: 54px; }
+  .gift-rail-emoji { font-size: 30px; }
+  .gift-rail-follow { width: 40px; height: 35px; font-size: 10px; }
   .pip { right: 10px; bottom: calc(150px + env(safe-area-inset-bottom)); width: 132px; }
   .emoji-picker { grid-template-columns: repeat(6, 36px); }
   .live-side, .gifts { top: auto; right: 0; bottom: 0; left: 0; width: auto; max-height: 60vh; max-height: 60dvh; border-radius: 18px 18px 0 0; padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
