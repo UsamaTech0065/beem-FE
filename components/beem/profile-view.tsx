@@ -245,7 +245,7 @@ export function ProfileView({ profile, posts, signedIn }: Props) {
         )}
 
         {shown.length > 0 ? (
-          <ProfilePosts posts={shown} canDelete={profile.isSelf} onError={setToast} />
+          <ProfilePosts handle={profile.handle} posts={shown} canDelete={profile.isSelf} onError={setToast} />
         ) : (
           !(tab === 'all' && profile.liveStream) && (
             <div className="profile-none">

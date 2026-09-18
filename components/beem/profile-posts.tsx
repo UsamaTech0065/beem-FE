@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { Loader2, Lock, Star, Trash2 } from 'lucide-react'
@@ -9,13 +10,15 @@ import type { ProfilePost } from '@/lib/api-types'
 const dateFormat = new Intl.DateTimeFormat('en', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })
 
 type Props = {
+  /** Whose posts these are; a tile opens their feed at that post. */
+  handle: string
   posts: ProfilePost[]
   /** True on your own page. */
   canDelete: boolean
   onError: (message: string) => void
 }
 
-export function ProfilePosts({ posts, canDelete, onError }: Props) {
+export function ProfilePosts({ handle, posts, canDelete, onError }: Props) {
   const router = useRouter()
   const [removing, setRemoving] = useState<string | null>(null)
 
@@ -32,17 +35,19 @@ export function ProfilePosts({ posts, canDelete, onError }: Props) {
     <ul className="posts">
       {posts.map((post) => (
         <li key={post.id} className={`post${post.locked ? ' is-locked' : ''}`}>
-          {post.locked ? (
-            <div className="post-locked">
-              <Lock size={28} strokeWidth={1.8} />
-              <strong>For Fans</strong>
-              <span>Subscribe to unlock</span>
-            </div>
-          ) : post.mediaUrl ? (
-            <img src={post.mediaUrl} alt="" className="post-media" loading="lazy" />
-          ) : (
-            <p className="post-quote">{post.text}</p>
-          )}
+          <Link href={`/${handle}/posts?p=${encodeURIComponent(post.id)}`} className="post-open" aria-label="Open post">
+            {post.locked ? (
+              <div className="post-locked">
+                <Lock size={28} strokeWidth={1.8} />
+                <strong>For Fans</strong>
+                <span>Subscribe to unlock</span>
+              </div>
+            ) : post.mediaUrl ? (
+              <img src={post.mediaUrl} alt="" className="post-media" loading="lazy" />
+            ) : (
+              <p className="post-quote">{post.text}</p>
+            )}
+          </Link>
 
           <div className="post-foot">
             {!post.locked && post.mediaUrl && post.text && <p>{post.text}</p>}
