@@ -1,4 +1,13 @@
-import type { Category, CreatorStats, CurrentUser, Fan, LiveFollowedEntry, Page, StreamCard } from './api-types'
+import type {
+  Category,
+  CreatorStats,
+  CurrentUser,
+  Fan,
+  LiveFollowedEntry,
+  Page,
+  StreamCard,
+  StreamDetail,
+} from './api-types'
 import { demoCategories, demoLivePage } from './demo-data'
 
 /**
@@ -103,8 +112,12 @@ export function getLiveStreams(options: { category?: string; limit?: number } = 
 }
 
 /** One stream, or null when it does not exist or the API is down. */
-export function getStream(id: string) {
-  return safe(apiFetch<StreamCard>(`/streams/${encodeURIComponent(id)}`), null, 'stream')
+export function getStream(id: string, accessToken: string | null = null) {
+  return safe(
+    apiFetch<StreamDetail>(`/streams/${encodeURIComponent(id)}`, { accessToken }),
+    null,
+    'stream',
+  )
 }
 
 export function getFollowingStreams(accessToken: string | null) {

@@ -38,6 +38,21 @@ export type CurrentUser = PublicUser & {
   liveStream: { id: string; title: string; viewerCount: number; startedAt: string } | null
 }
 
+/** A stream opened on its own page: the card plus what the viewer's relation to the host is. */
+export type StreamDetail = StreamCard & {
+  /** Null when nobody is signed in. */
+  isFollowing: boolean | null
+}
+
+/** RTMP details for an encoder such as OBS. */
+export type RtmpIngress = { ingressId: string; url: string; streamKey: string }
+
+export type GoLiveResponse = {
+  stream: StreamCard
+  connection: StreamConnection
+  ingress: RtmpIngress | null
+}
+
 /** What the browser needs to join a stream's LiveKit room. */
 export type StreamConnection = {
   url: string
