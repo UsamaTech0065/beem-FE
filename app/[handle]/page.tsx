@@ -4,7 +4,7 @@ import { ActionRail } from '@/components/beem/action-rail'
 import { MobileBottomNav } from '@/components/beem/mobile-bottom-nav'
 import { ProfileView } from '@/components/beem/profile-view'
 import { TopNav } from '@/components/beem/top-nav'
-import { getCurrentUser, getProfile } from '@/lib/api'
+import { getCurrentUser, getProfile, getProfilePosts } from '@/lib/api'
 import { getAccessToken } from '@/lib/session'
 
 export const dynamic = 'force-dynamic'
@@ -32,13 +32,17 @@ export default async function ProfileRoute({ params }: Props) {
   if (!HANDLE.test(handle.toLowerCase())) notFound()
 
   const accessToken = await getAccessToken()
-  const [profile, user] = await Promise.all([getProfile(handle, accessToken), getCurrentUser(accessToken)])
+  const [profile, posts, user] = await Promise.all([
+    getProfile(handle, accessToken),
+    getProfilePosts(handle, accessToken),
+    getCurrentUser(accessToken),
+  ])
   if (!profile) notFound()
 
   return (
     <div className="beem-app">
       <TopNav user={user} />
-      <ProfileView profile={profile} signedIn={Boolean(user)} />
+      <ProfileView profile={profile} posts={posts} signedIn={Boolean(user)} />
       <ActionRail />
       <MobileBottomNav />
     </div>

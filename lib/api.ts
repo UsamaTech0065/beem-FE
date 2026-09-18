@@ -2,10 +2,12 @@ import type {
   Category,
   CreatorStats,
   CurrentUser,
+  EditableProfile,
   Fan,
   LiveFollowedEntry,
   Page,
   ProfilePage,
+  ProfilePost,
   StreamCard,
   StreamDetail,
 } from './api-types'
@@ -149,6 +151,19 @@ export function getProfile(handle: string, accessToken: string | null) {
     null,
     'profile',
   )
+}
+
+export function getProfilePosts(handle: string, accessToken: string | null) {
+  return safe(
+    apiFetch<ProfilePost[]>(`/users/${encodeURIComponent(handle)}/posts`, { accessToken }),
+    [],
+    'profile posts',
+  )
+}
+
+export function getEditableProfile(accessToken: string | null) {
+  if (!accessToken) return Promise.resolve<EditableProfile | null>(null)
+  return safe(apiFetch<EditableProfile>('/users/me', { accessToken }), null, 'own profile')
 }
 
 export function getCreatorStats(accessToken: string | null) {

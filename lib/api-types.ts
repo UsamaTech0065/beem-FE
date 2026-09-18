@@ -63,9 +63,15 @@ export type StreamConnection = {
   hostIdentity: string
 }
 
+export type Gender = 'MALE' | 'FEMALE' | 'OTHER'
+
 /** A person's public page at /<handle>. */
 export type ProfilePage = PublicUser & {
   bio: string | null
+  /** Null when they prefer not to show it. */
+  gender: Gender | null
+  /** Null when no date of birth is set, or they chose to hide it. */
+  age: number | null
   role: UserRole
   createdAt: string
   followerCount: number
@@ -77,6 +83,26 @@ export type ProfilePage = PublicUser & {
   isSelf: boolean
   /** Null when nobody is signed in, or on your own page. */
   isFollowing: boolean | null
+}
+
+/** What the edit-profile page works on. Includes fields nobody else is shown. */
+export type EditableProfile = PublicUser & {
+  bio: string | null
+  gender: Gender | null
+  /** YYYY-MM-DD */
+  birthDate: string | null
+  hideAge: boolean
+}
+
+export type ProfilePost = {
+  id: string
+  text: string
+  /** A /media/<id> path. */
+  mediaUrl: string | null
+  fansOnly: boolean
+  /** Fans-only and not yours: text and media are withheld. */
+  locked: boolean
+  createdAt: string
 }
 
 /** ---- direct messages ---- */
