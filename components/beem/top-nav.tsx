@@ -9,7 +9,7 @@ import { AccountMenu } from './account-menu'
 import { BrandMark } from './brand-mark'
 import { isNavActive, navigationItems } from './data'
 import { SignInDialog } from './sign-in-dialog'
-import { EyeFilled } from './icons'
+import { CoinIcon, EyeFilled } from './icons'
 
 const iconMap = { 'thumbs-up': ThumbsUp, users: Users, search: Search, messages: MessageCircle, games: Gamepad2 }
 
@@ -65,7 +65,7 @@ export function TopNav({ user }: { user: CurrentUser | null }) {
         <div className="tg-actions">
           <div className="tg-balance">
             <span>My balance</span>
-            <span className="tg-coin" aria-hidden="true" />
+            <CoinIcon />
             <strong>0</strong>
             <button type="button" aria-label="Add coins" className="tg-balance-add">
               +

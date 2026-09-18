@@ -2,6 +2,7 @@
 
 import { Plus, X } from 'lucide-react'
 import { compactNumber } from './account-nav'
+import { CoinIcon } from './icons'
 
 /**
  * The catalogue is static until the coin ledger exists. Prices mirror the
@@ -42,7 +43,7 @@ export function GiftPanel({ balance, onClose, onPick }: Props) {
           <Plus size={16} /> Create
         </button>
         <span className="gifts-balance">
-          <span className="tg-coin" aria-hidden="true" /> {compactNumber(balance)}
+          <CoinIcon /> {compactNumber(balance)}
           <button type="button" className="gifts-add" aria-label="Add coins" disabled title="Coins are coming soon">
             <Plus size={14} />
           </button>
@@ -67,7 +68,7 @@ export function GiftPanel({ balance, onClose, onPick }: Props) {
               {gift.emoji}
             </span>
             <span className="gift-price">
-              <span className="tg-coin" aria-hidden="true" /> {compactNumber(gift.coins)}
+              <CoinIcon /> {compactNumber(gift.coins)}
             </span>
           </button>
         ))}

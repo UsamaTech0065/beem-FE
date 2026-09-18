@@ -17,24 +17,28 @@ export function EyeFilled({ size = 16, className }: IconProps) {
   )
 }
 
-/** The beem coin as a drawn icon, for buttons where the small CSS coin is too plain. */
-export function CoinIcon({ size = 24, className }: IconProps) {
+/**
+ * The beem coin. This is the only coin in the app: balances, prices and
+ * buttons all render it, so it looks the same at every size.
+ *
+ * Without `size` it takes its dimensions from the `.tg-coin` rule (and any
+ * contextual override), which is how prices keep a smaller coin than buttons.
+ * It is drawn with flat fills rather than a gradient on purpose: a gradient
+ * needs an element id, and a page with dozens of coins would repeat that id.
+ */
+export function CoinIcon({ size, className = '' }: IconProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" className={className} aria-hidden="true">
-      <defs>
-        <radialGradient id="beem-coin-face" cx="35%" cy="30%" r="80%">
-          <stop offset="0" stopColor="#fff3b0" />
-          <stop offset=".45" stopColor="#ffd23f" />
-          <stop offset="1" stopColor="#e0a400" />
-        </radialGradient>
-      </defs>
-      <circle cx="12" cy="12" r="11" fill="#c48a00" />
-      <circle cx="12" cy="12" r="9.6" fill="url(#beem-coin-face)" />
-      <circle cx="12" cy="12" r="7" fill="none" stroke="#c48a00" strokeOpacity=".55" strokeWidth="1" />
-      <path
-        fill="#b87f00"
-        d="m12 6.9 1.5 3.1 3.4.5-2.5 2.4.6 3.4-3-1.6-3 1.6.6-3.4-2.5-2.4 3.4-.5L12 6.9Z"
-      />
+    <svg
+      viewBox="0 0 24 24"
+      className={`tg-coin ${className}`}
+      style={size ? { width: size, height: size } : undefined}
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="11.5" fill="#b97f00" />
+      <circle cx="12" cy="12" r="10" fill="#ffc928" />
+      <ellipse cx="9.6" cy="8.6" rx="6" ry="4.8" fill="#ffe680" opacity=".85" />
+      <circle cx="12" cy="12" r="7.3" fill="none" stroke="#b97f00" strokeOpacity=".5" strokeWidth="1" />
+      <path fill="#a86f00" d="m12 6.6 1.6 3.3 3.6.5-2.6 2.5.6 3.6-3.2-1.7-3.2 1.7.6-3.6-2.6-2.5 3.6-.5L12 6.6Z" />
     </svg>
   )
 }

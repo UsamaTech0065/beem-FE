@@ -92,9 +92,8 @@
 .tg-actions { display: flex; align-items: center; gap: 14px; flex: 0 0 auto; }
 .tg-balance { display: flex; align-items: center; gap: 8px; height: 40px; border-radius: 999px; background: var(--secondary); padding: 0 6px 0 16px; font-size: 13px; white-space: nowrap; }
 .tg-balance strong { font-size: 15px; font-weight: 700; }
-/* One coin, used in the header, gift grids and prices. A rim and a highlight read as a coin at any size. */
-.tg-coin { display: inline-block; width: 16px; height: 16px; flex: 0 0 auto; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff3b0 0 18%, #ffd23f 45%, #e0a400 100%); box-shadow: inset 0 0 0 1.5px #c48a00, inset 0 -2px 3px rgba(0,0,0,.18), 0 0 0 1px rgba(0,0,0,.06); }
-.tg-coin--lg { width: 22px; height: 22px; }
+/* Size of the coin (components/beem/icons.tsx). It is drawn as an svg; this only places and sizes it. */
+.tg-coin { display: inline-block; width: 18px; height: 18px; flex: 0 0 auto; vertical-align: -3px; }
 .tg-balance-add { display: grid; width: 26px; height: 26px; place-items: center; border-radius: 50%; background: var(--primary); color: white; font-size: 20px; font-weight: 500; line-height: 1; }
 .tg-icon-button { display: grid; width: 40px; height: 40px; place-items: center; border-radius: 50%; color: var(--foreground); transition: background .15s; }
 .tg-icon-button:hover { background: var(--secondary); }

@@ -3,6 +3,7 @@ import { AccountShell } from '@/components/beem/account-shell'
 import { compactNumber } from '@/components/beem/account-nav'
 import { getCurrentUser } from '@/lib/api'
 import { getAccessToken } from '@/lib/session'
+import { CoinIcon } from '@/components/beem/icons'
 
 export const dynamic = 'force-dynamic'
 
@@ -35,7 +36,7 @@ export default async function StorePage() {
             <p>{item.text}</p>
             <div className="acct-card-foot">
               <span className="acct-price">
-                <span className="tg-coin" aria-hidden="true" />
+                <CoinIcon />
                 {compactNumber(item.coins)}
               </span>
               <button type="button" className="acct-btn" disabled title="Payments are not connected yet">

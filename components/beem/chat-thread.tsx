@@ -21,6 +21,7 @@ import { ChatContentPacks } from './chat-content-packs'
 import { EmojiPicker } from './emoji-picker'
 import { GIFTS } from './gift-panel'
 import { UserAvatar } from './user-avatar'
+import { CoinIcon } from './icons'
 
 /** How often an open thread asks for newer messages. */
 const THREAD_POLL_MS = 3_000
@@ -256,7 +257,7 @@ export function ChatThread({ me, conversation, onBack, onChanged }: Props) {
                       {gift.emoji}
                     </span>
                     <span className="dm-gift-price">
-                      <span className="tg-coin" aria-hidden="true" />
+                      <CoinIcon />
                       {gift.coins.toLocaleString()}
                     </span>
                   </button>
@@ -340,7 +341,7 @@ export function ChatThread({ me, conversation, onBack, onChanged }: Props) {
               <Plus size={16} /> Create
             </button>
             <span className="gifts-balance">
-              <span className="tg-coin" aria-hidden="true" /> 0
+              <CoinIcon /> 0
             </span>
             <button type="button" className="dm-gifts-close" onClick={() => setGiftsOpen(false)} aria-label="Close gifts">
               ×
@@ -354,7 +355,7 @@ export function ChatThread({ me, conversation, onBack, onChanged }: Props) {
                   {gift.emoji}
                 </span>
                 <span className="gift-price">
-                  <span className="tg-coin" aria-hidden="true" /> {gift.coins.toLocaleString()}
+                  <CoinIcon /> {gift.coins.toLocaleString()}
                 </span>
               </button>
             ))}

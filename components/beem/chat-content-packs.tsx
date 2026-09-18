@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { ImagePlus, Minus, Plus, X } from 'lucide-react'
+import { CoinIcon } from './icons'
 
 const PRESETS = [4_000, 2_000, 999, 499, 199]
 
@@ -92,7 +93,7 @@ export function ChatContentPacks({ onClose, onSend }: Props) {
                     <Minus size={18} />
                   </button>
                   <span>
-                    <span className="tg-coin" aria-hidden="true" /> {price.toLocaleString()}
+                    <CoinIcon /> {price.toLocaleString()}
                   </span>
                   <button type="button" onClick={() => setPrice((p) => p + 50)} aria-label="Raise price">
                     <Plus size={18} />
@@ -101,7 +102,7 @@ export function ChatContentPacks({ onClose, onSend }: Props) {
                 <div className="packs-presets">
                   {PRESETS.map((value) => (
                     <button type="button" key={value} className={price === value ? 'is-active' : ''} onClick={() => setPrice(value)}>
-                      <span className="tg-coin" aria-hidden="true" /> {value >= 1000 ? `${value / 1000}K` : value}
+                      <CoinIcon /> {value >= 1000 ? `${value / 1000}K` : value}
                     </button>
                   ))}
                 </div>

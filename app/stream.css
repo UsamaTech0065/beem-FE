@@ -202,7 +202,7 @@
 .gift:hover { background: rgba(255,255,255,.1); }
 .gift-emoji { font-size: 30px; line-height: 1; }
 .gift-price { display: inline-flex; align-items: center; gap: 4px; color: #fff; font-size: 13px; font-weight: 800; }
-.gift-price .tg-coin { width: 12px; height: 12px; }
+.gift-price .tg-coin { width: 15px; height: 15px; }
 .gift-free { position: absolute; top: 2px; left: 50%; transform: translateX(-50%); border-radius: 6px; background: rgba(255,255,255,.18); padding: 1px 6px; font-size: 10px; font-weight: 800; }
 
 /* ---- host end screen ---- */

@@ -107,7 +107,7 @@
 .dm-gift-list button:hover { background: var(--secondary); }
 .dm-gift-emoji { font-size: 30px; line-height: 1; }
 .dm-gift-price { display: inline-flex; align-items: center; gap: 3px; font-size: 12px; font-weight: 700; }
-.dm-gift-price .tg-coin { width: 12px; height: 12px; }
+.dm-gift-price .tg-coin { width: 15px; height: 15px; }
 .composer-row { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
 .composer-add { display: grid; width: 42px; height: 42px; flex: 0 0 auto; place-items: center; border-radius: 50%; color: var(--foreground); }
 .composer-add:hover { background: var(--secondary); }
