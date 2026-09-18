@@ -263,7 +263,7 @@
 .lc-follow-tag { display: inline-grid; place-items: center; border-radius: 50% 50% 46% 46%; background: linear-gradient(180deg, #ff5aa5, #ff2d87); padding: 3px 8px; color: #fff; font-size: 10px; font-weight: 800; vertical-align: 1px; }
 
 /* ---- emoji picker ---- */
-.emoji-picker { position: absolute; right: 0; bottom: calc(100% + 10px); z-index: 20; display: grid; grid-template-columns: repeat(8, 36px); gap: 2px; border-radius: 16px; padding: 10px; box-shadow: 0 14px 40px rgba(0,0,0,.35); }
+.emoji-picker { position: absolute; right: 0; bottom: calc(100% + 10px); z-index: 20; display: grid; grid-template-columns: repeat(8, 36px); gap: 2px; max-height: min(300px, 46vh); overflow-y: auto; scrollbar-width: thin; border-radius: 16px; padding: 10px; box-shadow: 0 14px 40px rgba(0,0,0,.35); }
 .emoji-picker button { display: grid; width: 36px; height: 36px; place-items: center; border-radius: 10px; font-size: 22px; line-height: 1; transition: background .12s; }
 .emoji-picker--dark { background: rgba(23,23,28,.96); backdrop-filter: blur(12px); }
 .emoji-picker--dark button:hover { background: rgba(255,255,255,.14); }
@@ -340,6 +340,12 @@
   .studio-left { display: none; }
   .live-side, .gifts { width: 280px; }
 }
+/* The chat sits bottom-left of the window and the host chip bottom of the picture. On a wide
+   screen they are side by side; on a tablet or a squarish window the picture reaches the chat,
+   so the chip moves to the top of the picture, under the back arrow. */
+@media (max-width: 1300px), (max-aspect-ratio: 3/2) {
+  .live-chip { top: 72px; right: auto; bottom: auto; left: 12px; max-width: calc(100% - 24px); padding-right: 6px; }
+}
 @media (max-width: 760px) {
   .tg-live-pill { height: 34px; gap: 6px; padding: 0 10px; font-size: 13px; }
   .livenow { flex-direction: column; align-items: flex-start; padding: 20px; }
@@ -384,7 +390,23 @@
   .gift-rail-follow { width: 40px; height: 35px; font-size: 10px; }
   .pip { right: 10px; bottom: calc(150px + env(safe-area-inset-bottom)); width: 132px; }
   .emoji-picker { grid-template-columns: repeat(6, 36px); }
+  /* In the room the chat box is on the left and the gift rail on the right; open away from the rail. */
+  .lc-box .emoji-picker { right: auto; left: 0; }
   .live-side, .gifts { top: auto; right: 0; bottom: 0; left: 0; width: auto; max-height: 60vh; max-height: 60dvh; border-radius: 18px 18px 0 0; padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
   .lc-list { max-height: 26vh; }
   .live-legal { display: none; }
+}
+@media (max-width: 360px) {
+  .emoji-picker { grid-template-columns: repeat(6, 32px); }
+  .emoji-picker button { width: 32px; height: 32px; font-size: 20px; }
+  .live-actions { gap: 6px; }
+}
+/* A phone on its side: little height, so sheets may use most of it and chat keeps to a few lines. */
+@media (max-height: 480px) {
+  .live-side, .gifts { top: 64px; max-height: none; }
+  .lc-list { max-height: 30vh; }
+  .gift-rail { top: 64px; }
+}
+@media (max-height: 480px) and (max-width: 760px) {
+  .live-side, .gifts { top: auto; max-height: 84vh; max-height: 84dvh; }
 }

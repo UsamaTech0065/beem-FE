@@ -61,7 +61,8 @@
 .chat-empty p { margin: 0; font-size: 16px; }
 
 /* ---- thread ---- */
-.chat-thread { position: relative; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; min-height: 0; }
+/* minmax(0, 1fr): an implicit column is as wide as its widest child, and the gift strip is a long scroller. */
+.chat-thread { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; min-width: 0; min-height: 0; }
 .thread-header { display: flex; align-items: center; gap: 12px; padding: 14px 20px; }
 .thread-back { display: none; width: 40px; height: 40px; place-items: center; border-radius: 50%; }
 .thread-avatar { width: 50px; height: 50px; flex: 0 0 auto; border-radius: 50%; object-fit: cover; background: var(--secondary); }
@@ -88,14 +89,15 @@
 .msg { display: grid; max-width: min(72%, 520px); gap: 4px; border-radius: 18px; padding: 10px 14px; }
 .msg p { margin: 0; font-size: 15px; line-height: 1.45; overflow-wrap: anywhere; }
 .msg time { font-size: 11px; opacity: .7; }
-.msg--theirs { justify-self: start; background: var(--secondary); border-bottom-left-radius: 6px; }
-.msg--mine { justify-self: end; background: var(--primary); color: #fff; border-bottom-right-radius: 6px; }
+/* The list is a flex column, so it is align-self that places a bubble and lets it hug its text. */
+.msg--theirs { align-self: flex-start; background: var(--secondary); border-bottom-left-radius: 6px; }
+.msg--mine { align-self: flex-end; background: var(--primary); color: #fff; border-bottom-right-radius: 6px; }
 .msg--mine time { justify-self: end; }
-.msg-hi { display: grid; justify-items: center; gap: 4px; margin: 10px 0; color: var(--muted-foreground); font-size: 13px; font-weight: 600; }
+.msg-hi { display: grid; align-self: center; justify-items: center; gap: 4px; margin: 10px 0; color: var(--muted-foreground); font-size: 13px; font-weight: 600; }
 .msg-hi span { font-size: 44px; line-height: 1; }
 
 /* ---- composer ---- */
-.thread-foot { display: grid; gap: 10px; padding: 0 20px 18px; }
+.thread-foot { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; min-width: 0; padding: 0 20px 18px; }
 .thread-join { display: inline-flex; align-items: center; gap: 8px; justify-self: center; height: 44px; border-radius: 999px; background: var(--primary); padding: 0 18px; color: #fff; font-size: 15px; font-weight: 800; }
 .composer { width: min(100%, 760px); justify-self: center; border: 1px solid var(--border); border-radius: 26px; background: var(--background); padding: 10px 10px 8px; box-shadow: 0 6px 24px rgba(23,23,28,.08); }
 .dm-gift-strip { display: flex; align-items: center; gap: 4px; }
@@ -123,7 +125,7 @@
 .composer-send:disabled { opacity: .6; }
 
 /* ---- gift picker (light, in the thread) ---- */
-.dm-gifts { position: absolute; right: 24px; bottom: 150px; z-index: 30; display: grid; grid-template-rows: auto auto minmax(0, 1fr); width: 330px; max-height: 440px; gap: 10px; border: 1px solid var(--border); border-radius: 18px; background: var(--background); padding: 14px; box-shadow: 0 18px 50px rgba(23,23,28,.18); }
+.dm-gifts { position: absolute; right: 24px; bottom: 150px; z-index: 30; display: grid; grid-template-rows: auto auto minmax(0, 1fr); width: 330px; max-height: min(440px, calc(100% - 158px)); gap: 10px; border: 1px solid var(--border); border-radius: 18px; background: var(--background); padding: 14px; box-shadow: 0 18px 50px rgba(23,23,28,.18); }
 .dm-gifts header { display: flex; align-items: center; gap: 10px; }
 .dm-gifts .gifts-create, .dm-gifts .gifts-balance { color: var(--foreground); background: var(--secondary); }
 .dm-gifts-close { display: grid; width: 32px; height: 32px; place-items: center; border-radius: 50%; font-size: 22px; line-height: 1; }
@@ -190,4 +192,16 @@
   .packs { padding: 20px 18px 24px; }
   .packs-empty { padding: 80px 0; }
   .packs-confirm p { margin-bottom: 60px; }
+}
+/* Short screens: a small phone, or any phone on its side. The quick-gift strip gives its
+   room to the conversation; the gift button in the composer still opens the full picker. */
+@media (max-height: 600px) {
+  .dm-gift-strip { display: none; }
+  .composer-row { margin-top: 0; }
+  .thread-header { padding-block: 8px; }
+  .thread-avatar { width: 40px; height: 40px; }
+  .thread-foot { padding-bottom: 8px; }
+  .dm-gifts { bottom: 76px; max-height: calc(100% - 84px); }
+  .thread-wave { margin-top: 8px; font-size: 56px; }
+  .thread-intro .ua { width: 48px; height: 48px; }
 }

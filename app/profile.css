@@ -14,7 +14,7 @@
 .profile-avatar-wrap.is-live { box-shadow: 0 0 0 3px var(--background), 0 0 0 6px var(--primary); }
 .profile-live-tag { position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); border: 3px solid var(--background); border-radius: 8px; background: var(--primary); padding: 1px 9px; color: #fff; font-size: 12px; font-weight: 800; letter-spacing: .06em; }
 
-.profile-info { display: grid; min-width: 0; flex: 1; gap: 10px; }
+.profile-info { display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; flex: 1; gap: 10px; }
 .profile-title { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .profile-title h1 { margin: 0; overflow: hidden; font-size: 26px; font-weight: 700; letter-spacing: -.02em; text-overflow: ellipsis; white-space: nowrap; }
 .profile-icons { display: flex; flex: 0 0 auto; gap: 6px; }
@@ -155,9 +155,9 @@
 .ep-photo-img { width: 192px; height: 192px; background: var(--secondary); }
 .ep-photo-btn { position: absolute; bottom: -14px; left: 50%; display: grid; width: 56px; height: 56px; place-items: center; transform: translateX(-50%); border: 1px solid var(--border); border-radius: 50%; background: var(--background); color: var(--foreground); box-shadow: 0 2px 8px rgba(23,23,28,.08); transition: background .15s; }
 .ep-photo-btn:hover:not(:disabled) { background: var(--secondary); }
-.ep-rows { display: grid; gap: 6px; margin: 22px 0 0; }
+.ep-rows { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; margin: 22px 0 0; }
 .ep-rows > div { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 46px; }
-.ep-rows dt { font-size: 18px; font-weight: 500; }
+.ep-rows dt { flex: 0 0 auto; font-size: 18px; font-weight: 500; }
 .ep-rows dd { display: flex; min-width: 0; align-items: center; gap: 12px; margin: 0; }
 .ep-rows dd span { overflow: hidden; color: #8e8e98; font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
 .ep-rows dd button { flex: 0 0 auto; height: 32px; border: 1px solid var(--border); border-radius: 999px; padding: 0 16px; font-size: 14px; font-weight: 700; transition: background .15s; }
@@ -237,4 +237,11 @@
   .fp-modal { padding: 24px 22px 26px; }
   .profile-livecard { grid-template-columns: 1fr; }
   .profile-livecard .profile-btn { grid-column: 1; grid-row: auto; margin-top: 8px; }
+}
+@media (max-width: 360px) {
+  /* Three buttons do not fit on the narrowest phones; let the last one drop. */
+  .profile-actions { flex-wrap: wrap; }
+  .profile-stats { gap: 22px; }
+  .ep-rows dt { font-size: 15px; }
+  .ep-rows dd { gap: 8px; }
 }
