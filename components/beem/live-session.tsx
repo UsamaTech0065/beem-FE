@@ -3,10 +3,12 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { Eye, Maximize2, X } from 'lucide-react'
+import { Maximize2, X } from 'lucide-react'
 import type { StreamDetail } from '@/lib/api-types'
 import { useLiveRoom, type ChatSender, type LiveRoom } from '@/lib/use-live-room'
 import { TrackAudio, TrackVideo } from './track-media'
+import { EyeFilled } from './icons'
+import { UserAvatar } from './user-avatar'
 
 type Session = {
   stream: StreamDetail
@@ -85,7 +87,7 @@ function MiniPlayer() {
     <div className="pip" role="region" aria-label={`Mini player: ${stream.host.displayName}`}>
       <button type="button" className="pip-stage" onClick={() => router.push(href)} aria-label="Return to the stream">
         <TrackVideo track={room.videoTrack} className="pip-video" />
-        {!room.videoTrack && <img src={stream.thumbnailUrl ?? '/placeholder-user.jpg'} alt="" className="pip-poster" />}
+        {!room.videoTrack && stream.thumbnailUrl && <img src={stream.thumbnailUrl} alt="" className="pip-poster" />}
       </button>
 
       <div className="pip-top">
@@ -93,7 +95,7 @@ function MiniPlayer() {
           <span className="live-dot" aria-hidden="true" /> LIVE
         </span>
         <span className="pip-viewers">
-          <Eye size={12} fill="currentColor" strokeWidth={0} /> {room.viewerCount}
+          <EyeFilled size={12} /> {room.viewerCount}
         </span>
         <Link href={href} className="pip-btn" aria-label="Expand">
           <Maximize2 size={14} />
@@ -104,7 +106,7 @@ function MiniPlayer() {
       </div>
 
       <div className="pip-bottom">
-        <img src={stream.host.avatarUrl ?? '/placeholder-user.jpg'} alt="" />
+        <UserAvatar src={stream.host.avatarUrl} name={stream.host.displayName} size={26} />
         <strong>{stream.host.displayName}</strong>
       </div>
     </div>

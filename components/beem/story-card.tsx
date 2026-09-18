@@ -1,7 +1,8 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { Eye, Play } from 'lucide-react'
+import { Play } from 'lucide-react'
 import type { LiveFollowedEntry } from '@/lib/api-types'
+import { EyeFilled } from './icons'
 
 const FALLBACK_THUMB = '/placeholder.jpg'
 const FALLBACK_AVATAR = '/placeholder-user.jpg'
@@ -21,7 +22,7 @@ export function StoryCard({ entry }: { entry: LiveFollowedEntry }) {
         />
         <div className="story-card-top">
           <span>
-            <Eye size={18} fill="currentColor" /> {stream.viewerCount}
+            <EyeFilled size={18} /> {stream.viewerCount}
           </span>
           {stream.mode === 'VIDEO' ? <Play size={19} fill="currentColor" /> : null}
         </div>

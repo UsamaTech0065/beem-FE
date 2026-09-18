@@ -1,7 +1,8 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { Eye, Gem, Play } from 'lucide-react'
+import { Gem, Play } from 'lucide-react'
 import { formatDiamonds, type StreamCard as StreamCardData } from '@/lib/api-types'
+import { EyeFilled } from './icons'
 
 const FALLBACK_THUMB = '/placeholder.jpg'
 const FALLBACK_AVATAR = '/placeholder-user.jpg'
@@ -34,7 +35,7 @@ export function StreamCard({ stream, priority = false }: Props) {
 
         <div className="stream-top">
           <span className="stream-viewers">
-            <Eye size={16} fill="currentColor" strokeWidth={0} /> {stream.viewerCount}
+            <EyeFilled size={16} /> {stream.viewerCount}
           </span>
           {stream.mode === 'VERSUS' && (
             <>

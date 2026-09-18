@@ -14,8 +14,8 @@
 .live-round.is-off { background: #fff; color: #17171c; }
 .live-round--end { background: rgba(255,255,255,.14); }
 .live-round--end:hover:not(:disabled) { background: var(--destructive); }
-.live-round--coin { background: #fff3c4; }
-.live-round--coin .tg-coin { width: 20px; height: 20px; }
+/* Same glass disc as its neighbours; the drawn coin carries the colour. */
+.live-round--coin svg { filter: drop-shadow(0 1px 2px rgba(0,0,0,.35)); }
 
 /* ---- modal (permissions tip) ---- */
 .live-modal-backdrop { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; background: rgba(0,0,0,.6); padding: 20px; }
@@ -130,7 +130,7 @@
 .live-video.is-mirrored { transform: scaleX(-1); }
 
 .live-chip { position: absolute; right: 12px; bottom: 16px; left: 12px; z-index: 3; display: flex; align-items: center; gap: 10px; border-radius: 999px; background: rgba(0,0,0,.5); padding: 6px 6px 6px 6px; backdrop-filter: blur(10px); }
-.live-chip img { width: 44px; height: 44px; flex: 0 0 auto; border-radius: 50%; object-fit: cover; }
+.live-chip .ua { width: 44px; height: 44px; flex: 0 0 auto; border-radius: 50%; object-fit: cover; }
 .live-chip > div { display: grid; min-width: 0; flex: 1; }
 .live-chip strong { overflow: hidden; font-size: 15px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
 .live-chip span { display: inline-flex; align-items: center; gap: 4px; color: rgba(255,255,255,.8); font-size: 12px; font-weight: 700; }
@@ -151,8 +151,8 @@
 .live-stats span { display: inline-flex; align-items: center; gap: 6px; }
 .live-actions { position: absolute; top: 18px; right: 18px; z-index: 5; display: flex; align-items: center; gap: 10px; }
 .live-viewers { display: inline-flex; align-items: center; gap: 6px; height: 44px; border-radius: 999px; background: rgba(255,255,255,.14); padding: 0 16px; font-size: 15px; font-weight: 800; backdrop-filter: blur(10px); }
-.live-pill { display: inline-flex; align-items: center; gap: 8px; height: 44px; border-radius: 999px; background: rgba(0,0,0,.55); padding: 0 18px; font-size: 14px; font-weight: 800; letter-spacing: .04em; backdrop-filter: blur(10px); }
-.live-pill.is-live { background: #17171c; }
+.live-state { display: inline-flex; align-items: center; gap: 8px; height: 44px; border-radius: 999px; background: rgba(0,0,0,.55); padding: 0 18px; font-size: 14px; font-weight: 800; letter-spacing: .04em; backdrop-filter: blur(10px); }
+.live-state.is-live { background: #17171c; }
 .live-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--primary); animation: live-pulse 1.6s ease-out infinite; }
 
 .live-bottom-left { position: absolute; bottom: 18px; left: 18px; z-index: 5; display: grid; width: min(340px, calc(100% - 36px)); gap: 12px; }
@@ -169,24 +169,24 @@
 .live.is-ui-hidden .live-actions > :not(.live-eye) { display: none; }
 .live-eye.is-on { background: #fff; color: #17171c; }
 
-/* ---- chat ---- */
-.chat { display: grid; gap: 10px; }
-.chat-list { display: grid; max-height: 34vh; margin: 0; padding: 0; list-style: none; gap: 6px; overflow-y: auto; scrollbar-width: none; mask-image: linear-gradient(to bottom, transparent, #000 18%); }
-.chat-list::-webkit-scrollbar { display: none; }
-.chat-line { display: flex; align-items: flex-start; gap: 8px; border-radius: 14px; background: rgba(0,0,0,.45); padding: 6px 12px 6px 6px; font-size: 14px; line-height: 1.4; backdrop-filter: blur(6px); }
-.chat-line img { width: 26px; height: 26px; flex: 0 0 auto; border-radius: 50%; object-fit: cover; }
-.chat-line strong { color: #ffd94a; font-weight: 800; }
-.chat-line.is-host strong { color: #ff8ec0; }
-.chat-box { display: flex; align-items: center; gap: 10px; height: 54px; border-radius: 999px; background: rgba(255,255,255,.14); padding: 0 10px 0 6px; backdrop-filter: blur(10px); }
-.chat-box img { width: 40px; height: 40px; flex: 0 0 auto; border-radius: 50%; object-fit: cover; }
-.chat-box input { min-width: 0; flex: 1; background: transparent; color: #fff; font-size: 15px; outline: none; }
-.chat-box input::placeholder { color: rgba(255,255,255,.6); }
-.chat-box--signin { width: 100%; color: rgba(255,255,255,.75); font-size: 15px; text-align: left; }
-.chat-icon { display: grid; width: 36px; height: 36px; place-items: center; border-radius: 50%; color: rgba(255,255,255,.8); }
-.chat-icon:disabled { opacity: .5; cursor: not-allowed; }
-.chat-icon.is-on { background: rgba(255,255,255,.22); color: #fff; }
-.chat-box { position: relative; }
-.chat-send { background: var(--primary); color: #fff; }
+/* ---- live chat overlay (lc-*: kept apart from the inbox's chat-* classes) ---- */
+.lc { display: grid; gap: 10px; }
+.lc-list { display: grid; max-height: 34vh; margin: 0; padding: 0; list-style: none; gap: 6px; overflow-y: auto; scrollbar-width: none; mask-image: linear-gradient(to bottom, transparent, #000 18%); }
+.lc-list::-webkit-scrollbar { display: none; }
+.lc-line { display: flex; align-items: flex-start; gap: 8px; border-radius: 14px; background: rgba(0,0,0,.45); padding: 6px 12px 6px 6px; font-size: 14px; line-height: 1.4; backdrop-filter: blur(6px); }
+.lc-line .ua { width: 26px; height: 26px; flex: 0 0 auto; border-radius: 50%; object-fit: cover; }
+.lc-line strong { color: #ffd94a; font-weight: 800; }
+.lc-line.is-host strong { color: #ff8ec0; }
+.lc-box { display: flex; align-items: center; gap: 10px; height: 54px; border-radius: 999px; background: rgba(255,255,255,.14); padding: 0 10px 0 6px; backdrop-filter: blur(10px); }
+.lc-box .ua { width: 40px; height: 40px; flex: 0 0 auto; border-radius: 50%; object-fit: cover; }
+.lc-box input { min-width: 0; flex: 1; background: transparent; color: #fff; font-size: 15px; outline: none; }
+.lc-box input::placeholder { color: rgba(255,255,255,.6); }
+.lc-box--signin { width: 100%; color: rgba(255,255,255,.75); font-size: 15px; text-align: left; }
+.lc-icon { display: grid; width: 36px; height: 36px; place-items: center; border-radius: 50%; color: rgba(255,255,255,.8); }
+.lc-icon:disabled { opacity: .5; cursor: not-allowed; }
+.lc-icon.is-on { background: rgba(255,255,255,.22); color: #fff; }
+.lc-box { position: relative; }
+.lc-send { background: var(--primary); color: #fff; }
 
 /* ---- gifts ---- */
 .gifts { position: absolute; top: 80px; right: 18px; bottom: 18px; z-index: 6; display: grid; grid-template-rows: auto auto minmax(0, 1fr); width: 320px; gap: 12px; border-radius: 18px; background: rgba(23,23,28,.94); padding: 16px; backdrop-filter: blur(14px); }
@@ -241,7 +241,7 @@
 .pip-btn { display: grid; width: 28px; height: 28px; place-items: center; border-radius: 50%; background: rgba(0,0,0,.55); color: #fff; transition: background .15s; }
 .pip-btn:hover { background: rgba(255,255,255,.25); }
 .pip-bottom { position: absolute; right: 8px; bottom: 8px; left: 8px; z-index: 2; display: flex; align-items: center; gap: 8px; pointer-events: none; }
-.pip-bottom img { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; }
+.pip-bottom .ua { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; }
 .pip-bottom strong { overflow: hidden; font-size: 13px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; text-shadow: 0 1px 4px rgba(0,0,0,.6); }
 
 /* ---- cards are links ---- */
@@ -320,11 +320,14 @@
   .live-stage { width: 100%; }
   .live-bg, .live-bg--image { display: none; }
   .live-back { top: 12px; left: 12px; }
-  .live-stats { top: 16px; left: 66px; padding: 7px 12px; font-size: 13px; }
+  /* The host's top row is full on a phone, so the stats sit under the back arrow. */
+  .live-stats { top: 62px; left: 12px; padding: 7px 12px; font-size: 13px; }
+  /* The gift sheet covers the lower half; hide what would peek out from behind it. */
+  .live:has(.gifts) .live-chip, .live:has(.gifts) .live-bottom-left { display: none; }
   .live-actions { top: 12px; right: 12px; gap: 8px; }
   .live-actions .live-round { width: 40px; height: 40px; }
   .live-viewers { height: 40px; padding: 0 12px; font-size: 14px; }
-  .live-pill { height: 40px; padding: 0 14px; font-size: 13px; }
+  .live-state { height: 40px; padding: 0 14px; font-size: 13px; }
   .live-chip { right: 12px; bottom: 90px; left: 12px; }
   .live-bottom-left { right: 80px; bottom: calc(12px + env(safe-area-inset-bottom)); left: 12px; width: auto; }
   .live-controls { bottom: calc(16px + env(safe-area-inset-bottom)); }
@@ -333,6 +336,6 @@
   .pip { right: 10px; bottom: calc(150px + env(safe-area-inset-bottom)); width: 132px; }
   .emoji-picker { grid-template-columns: repeat(6, 36px); }
   .live-side, .gifts { top: auto; right: 0; bottom: 0; left: 0; width: auto; max-height: 60vh; max-height: 60dvh; border-radius: 18px 18px 0 0; padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
-  .chat-list { max-height: 26vh; }
+  .lc-list { max-height: 26vh; }
   .live-legal { display: none; }
 }

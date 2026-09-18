@@ -5,11 +5,10 @@ import { Hand, Heart, Inbox, Plus, Search, SquarePen, Video } from 'lucide-react
 import type { ChatPeer, CurrentUser, DmConversation } from '@/lib/api-types'
 import { ChatRow } from './chat-row'
 import { WELCOME_CHAT_ID } from './chat-workspace'
+import { UserAvatar } from './user-avatar'
 
 const FILTERS = ['All', 'Unread', 'Favorites'] as const
 type Filter = (typeof FILTERS)[number]
-
-const FALLBACK_AVATAR = '/placeholder-user.jpg'
 
 type Props = {
   me: CurrentUser
@@ -90,7 +89,7 @@ export function ChatSidebar({ me, conversations, suggested, loaded, selectedId, 
             key={chat.id}
             avatar={
               <span className={`chat-avatar-wrap${chat.peer.liveStreamId ? ' is-live' : ''}`}>
-                <img className="chat-avatar" src={chat.peer.avatarUrl ?? FALLBACK_AVATAR} alt="" />
+                <UserAvatar className="chat-avatar" src={chat.peer.avatarUrl} name={chat.peer.displayName} size={64} />
               </span>
             }
             name={chat.peer.displayName}
@@ -114,7 +113,7 @@ export function ChatSidebar({ me, conversations, suggested, loaded, selectedId, 
               <div key={peer.id} className="chat-suggest">
                 <button type="button" className="chat-suggest-main" onClick={() => onOpenWith(peer, false)}>
                   <span className={`chat-avatar-wrap${peer.liveStreamId ? ' is-live' : ''}`}>
-                    <img className="chat-avatar" src={peer.avatarUrl ?? FALLBACK_AVATAR} alt="" />
+                    <UserAvatar className="chat-avatar" src={peer.avatarUrl} name={peer.displayName} size={64} />
                   </span>
                   <span className="chat-row-copy">
                     <strong>{peer.displayName}</strong>

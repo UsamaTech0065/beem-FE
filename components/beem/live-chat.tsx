@@ -4,13 +4,12 @@ import { useEffect, useRef, useState } from 'react'
 import { SendHorizontal, Smile } from 'lucide-react'
 import type { ChatMessage } from '@/lib/use-live-room'
 import { EmojiPicker } from './emoji-picker'
-
-const FALLBACK_AVATAR = '/placeholder-user.jpg'
+import { UserAvatar } from './user-avatar'
 
 type Props = {
   messages: ChatMessage[]
   /** Null when the visitor is signed out; the input then offers sign-in instead. */
-  me: { avatarUrl: string | null } | null
+  me: { avatarUrl: string | null; name: string } | null
   onSend: (text: string) => Promise<void>
   onSignIn: () => void
   disabled?: boolean
@@ -46,11 +45,11 @@ export function LiveChat({ messages, me, onSend, onSignIn, disabled = false }: P
   }
 
   return (
-    <div className="chat">
-      <ol className="chat-list" ref={list} aria-live="polite" aria-label="Chat">
+    <div className="lc">
+      <ol className="lc-list" ref={list} aria-live="polite" aria-label="Chat">
         {messages.map((message) => (
-          <li key={message.id} className={`chat-line${message.fromHost ? ' is-host' : ''}`}>
-            <img src={message.avatarUrl ?? FALLBACK_AVATAR} alt="" />
+          <li key={message.id} className={`lc-line${message.fromHost ? ' is-host' : ''}`}>
+            <UserAvatar src={message.avatarUrl} name={message.name} size={26} />
             <span>
               <strong>{message.name}</strong> {message.text}
             </span>
@@ -59,8 +58,8 @@ export function LiveChat({ messages, me, onSend, onSignIn, disabled = false }: P
       </ol>
 
       {me ? (
-        <form className="chat-box" onSubmit={submit}>
-          <img src={me.avatarUrl ?? FALLBACK_AVATAR} alt="" />
+        <form className="lc-box" onSubmit={submit}>
+          <UserAvatar src={me.avatarUrl} name={me.name} size={40} />
           <input
             ref={input}
             value={text}
@@ -72,7 +71,7 @@ export function LiveChat({ messages, me, onSend, onSignIn, disabled = false }: P
           />
           <button
             type="button"
-            className={`chat-icon${emojiOpen ? ' is-on' : ''}`}
+            className={`lc-icon${emojiOpen ? ' is-on' : ''}`}
             aria-label="Emoji"
             aria-expanded={emojiOpen}
             data-emoji-toggle
@@ -81,15 +80,15 @@ export function LiveChat({ messages, me, onSend, onSignIn, disabled = false }: P
             <Smile size={22} strokeWidth={1.8} />
           </button>
           {text.trim() && (
-            <button type="submit" className="chat-icon chat-send" aria-label="Send">
+            <button type="submit" className="lc-icon lc-send" aria-label="Send">
               <SendHorizontal size={20} />
             </button>
           )}
           {emojiOpen && <EmojiPicker tone="dark" onPick={addEmoji} onClose={() => setEmojiOpen(false)} />}
         </form>
       ) : (
-        <button type="button" className="chat-box chat-box--signin" onClick={onSignIn}>
-          <img src={FALLBACK_AVATAR} alt="" />
+        <button type="button" className="lc-box lc-box--signin" onClick={onSignIn}>
+          <UserAvatar src={null} name="?" size={40} />
           <span>Sign in to say something...</span>
         </button>
       )}

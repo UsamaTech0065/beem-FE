@@ -20,11 +20,11 @@ import type { CurrentUser, DmConversation, DmMessage } from '@/lib/api-types'
 import { ChatContentPacks } from './chat-content-packs'
 import { EmojiPicker } from './emoji-picker'
 import { GIFTS } from './gift-panel'
+import { UserAvatar } from './user-avatar'
 
 /** How often an open thread asks for newer messages. */
 const THREAD_POLL_MS = 3_000
 const QUICK_GIFTS = GIFTS.slice(0, 8)
-const FALLBACK_AVATAR = '/placeholder-user.jpg'
 
 type Props = {
   me: CurrentUser
@@ -175,7 +175,7 @@ export function ChatThread({ me, conversation, onBack, onChanged }: Props) {
           <ChevronLeft size={24} />
         </button>
         <span className={`chat-avatar-wrap${peer.liveStreamId ? ' is-live' : ''}`}>
-          <img className="thread-avatar" src={peer.avatarUrl ?? FALLBACK_AVATAR} alt="" />
+          <UserAvatar className="thread-avatar" src={peer.avatarUrl} name={peer.displayName} size={50} />
         </span>
         <div className="thread-title">
           <h2>{peer.displayName}</h2>
@@ -204,7 +204,7 @@ export function ChatThread({ me, conversation, onBack, onChanged }: Props) {
       <div className="thread-scroll" ref={scroller}>
         {empty ? (
           <div className="thread-intro">
-            <img src={peer.avatarUrl ?? FALLBACK_AVATAR} alt="" />
+            <UserAvatar src={peer.avatarUrl} name={peer.displayName} size={70} />
             <strong>{peer.displayName}</strong>
             <span className="thread-wave" aria-hidden="true">
               👋

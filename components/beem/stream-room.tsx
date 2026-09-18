@@ -31,8 +31,8 @@ import { LiveEnded } from './live-ended'
 import { useLiveSession } from './live-session'
 import { SignInDialog } from './sign-in-dialog'
 import { TrackVideo } from './track-media'
-
-const FALLBACK_AVATAR = '/placeholder-user.jpg'
+import { CoinIcon, EyeFilled } from './icons'
+import { UserAvatar } from './user-avatar'
 
 type Props = {
   stream: StreamDetail
@@ -153,7 +153,7 @@ export function StreamRoom({ stream, user, studio }: Props) {
         {/* Host chip over the picture, with follow for everyone but the host. */}
         {!over && (
           <div className="live-chip">
-            <img src={stream.host.avatarUrl ?? FALLBACK_AVATAR} alt="" />
+            <UserAvatar src={stream.host.avatarUrl} name={stream.host.displayName} size={44} />
             <div>
               <strong>{stream.host.displayName}</strong>
               <span>
@@ -231,7 +231,7 @@ export function StreamRoom({ stream, user, studio }: Props) {
       {isHost && !over && (
         <div className="live-stats" title="Watching now and diamonds this live">
           <span>
-            <Eye size={15} fill="currentColor" strokeWidth={0} /> {room.viewerCount}
+            <EyeFilled size={15} /> {room.viewerCount}
           </span>
           <span>
             <Gem size={15} strokeWidth={2.2} /> {formatDiamonds(stream.diamondsTotal)}
@@ -243,7 +243,7 @@ export function StreamRoom({ stream, user, studio }: Props) {
         {isHost ? (
           <>
             {!over && (
-              <span className={`live-pill${phase === 'live' ? ' is-live' : ''}`}>
+              <span className={`live-state${phase === 'live' ? ' is-live' : ''}`}>
                 <span className="live-dot" aria-hidden="true" />
                 {phase === 'live' ? 'LIVE' : 'Starting live...'}
               </span>
@@ -265,10 +265,10 @@ export function StreamRoom({ stream, user, studio }: Props) {
         ) : (
           <>
             <span className="live-viewers">
-              <Eye size={16} fill="currentColor" strokeWidth={0} /> {room.viewerCount}
+              <EyeFilled size={16} /> {room.viewerCount}
             </span>
             <button type="button" className="live-round live-round--coin" onClick={() => setGiftsOpen(true)} aria-label="Send a gift">
-              <span className="tg-coin tg-coin--lg" aria-hidden="true" />
+              <CoinIcon size={26} />
             </button>
             <button type="button" className="live-round" onClick={room.toggleMuted} aria-label={room.muted ? 'Unmute' : 'Mute'}>
               {room.muted ? <VolumeX size={20} /> : <Volume2 size={20} />}
@@ -299,7 +299,7 @@ export function StreamRoom({ stream, user, studio }: Props) {
           )}
           <LiveChat
             messages={attached ? room.messages : []}
-            me={user ? { avatarUrl: user.avatarUrl } : null}
+            me={user ? { avatarUrl: user.avatarUrl, name: user.displayName } : null}
             onSend={room.sendChat}
             onSignIn={() => setSignInOpen(true)}
             disabled={phase === 'connecting'}

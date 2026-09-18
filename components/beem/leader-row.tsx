@@ -1,5 +1,6 @@
 import Link from 'next/link'
-import { Eye, Gem } from 'lucide-react'
+import { Gem } from 'lucide-react'
+import { EyeFilled } from './icons'
 
 const FALLBACK_AVATAR = '/placeholder-user.jpg'
 
@@ -43,7 +44,7 @@ export function LeaderRow({
 
       <span className="leader-score">
         {metric === 'views' ? (
-          <Eye size={16} fill="currentColor" strokeWidth={0} />
+          <EyeFilled size={16} />
         ) : (
           <Gem size={15} strokeWidth={2.2} />
         )}

@@ -100,6 +100,9 @@
 .tg-icon-button:hover { background: var(--secondary); }
 .tg-avatar { width: 48px; height: 48px; overflow: hidden; border-radius: 50%; background: var(--secondary); }
 .tg-avatar img { width: 100%; height: 100%; object-fit: cover; }
+/* UserAvatar: a photo, or an initial on a colour derived from the name. Containers size it. */
+.ua { display: grid; flex: 0 0 auto; place-items: center; overflow: hidden; border-radius: 50%; object-fit: cover; }
+.ua--initial { color: #fff; font-weight: 800; line-height: 1; user-select: none; }
 .tg-sign-in { display: inline-flex; align-items: center; gap: 10px; height: 50px; border-radius: 999px; background: var(--primary); padding: 0 26px 0 22px; color: white; font-size: 18px; font-weight: 700; transition: filter .15s; }
 .tg-sign-in:hover { filter: brightness(1.05); }
 .tg-menu-toggle { display: none; width: 44px; height: 44px; place-items: center; border-radius: 50%; }

@@ -2,7 +2,8 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
-import { Eye, Gem, Star } from 'lucide-react'
+import { Gem, Star } from 'lucide-react'
+import { EyeFilled } from './icons'
 
 type Props = {
   peakViewers: number
@@ -20,7 +21,7 @@ export function LiveEnded({ peakViewers, diamonds }: Props) {
       <h2>Live ended</h2>
       <p className="ended-stats">
         <span>
-          <Eye size={16} fill="currentColor" strokeWidth={0} /> {peakViewers}
+          <EyeFilled size={16} /> {peakViewers}
         </span>
         <span>
           <Gem size={16} strokeWidth={2.2} /> {diamonds}

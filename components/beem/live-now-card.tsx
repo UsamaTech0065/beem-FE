@@ -3,8 +3,9 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { Eye, Radio } from 'lucide-react'
+import { Radio } from 'lucide-react'
 import type { CurrentUser } from '@/lib/api-types'
+import { EyeFilled } from './icons'
 
 type LiveStream = NonNullable<CurrentUser['liveStream']>
 
@@ -43,7 +44,7 @@ export function LiveNowCard({ stream }: { stream: LiveStream }) {
         </p>
         <h2>{stream.title}</h2>
         <p className="livenow-meta">
-          <Eye size={15} fill="currentColor" strokeWidth={0} /> {stream.viewerCount} watching · started{' '}
+          <EyeFilled size={15} /> {stream.viewerCount} watching · started{' '}
           {/* The server formats this in its own time zone; the browser's value is the right one. */}
           <time dateTime={stream.startedAt} suppressHydrationWarning>
             {new Date(stream.startedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}

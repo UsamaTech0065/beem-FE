@@ -3,12 +3,13 @@
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { useState } from 'react'
-import { Eye, Gamepad2, LogIn, Megaphone, MessageCircle, Search, ThumbsUp, Trophy, Users, X } from 'lucide-react'
+import { Gamepad2, LogIn, Megaphone, MessageCircle, Search, ThumbsUp, Trophy, Users, X } from 'lucide-react'
 import type { CurrentUser } from '@/lib/api-types'
 import { AccountMenu } from './account-menu'
 import { BrandMark } from './brand-mark'
 import { isNavActive, navigationItems } from './data'
-import { SignInDialog } from './sign-in-dialog'
+import { SignInDialog } from './sign-in-dialog'
+import { EyeFilled } from './icons'
 
 const iconMap = { 'thumbs-up': ThumbsUp, users: Users, search: Search, messages: MessageCircle, games: Gamepad2 }
 
@@ -88,7 +89,7 @@ export function TopNav({ user }: { user: CurrentUser | null }) {
               <span className="tg-live-dot" aria-hidden="true" />
               <span className="tg-live-text">You&apos;re live</span>
               <span className="tg-live-count">
-                <Eye size={14} fill="currentColor" strokeWidth={0} /> {user.liveStream.viewerCount}
+                <EyeFilled size={14} /> {user.liveStream.viewerCount}
               </span>
             </Link>
           )}
