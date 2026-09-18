@@ -12,11 +12,17 @@ const LIST_POLL_MS = 8_000
 /** The welcome note every account sees at the top, like the reference's own row. */
 export const WELCOME_CHAT_ID = 'beem-welcome'
 
-export function ChatWorkspace({ user }: { user: CurrentUser }) {
+type Props = {
+  user: CurrentUser
+  /** Conversation to open straight away, from /chats?c=<id>. */
+  initialChatId?: string | null
+}
+
+export function ChatWorkspace({ user, initialChatId = null }: Props) {
   const [conversations, setConversations] = useState<DmConversation[]>([])
   const [suggested, setSuggested] = useState<ChatPeer[]>([])
   const [loaded, setLoaded] = useState(false)
-  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [selectedId, setSelectedId] = useState<string | null>(initialChatId)
   const [error, setError] = useState<string | null>(null)
   const selectedRef = useRef(selectedId)
   selectedRef.current = selectedId

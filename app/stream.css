@@ -131,7 +131,8 @@
 
 .live-chip { position: absolute; right: 12px; bottom: 16px; left: 12px; z-index: 3; display: flex; align-items: center; gap: 10px; border-radius: 999px; background: rgba(0,0,0,.5); padding: 6px 6px 6px 6px; backdrop-filter: blur(10px); }
 .live-chip .ua { width: 44px; height: 44px; flex: 0 0 auto; border-radius: 50%; object-fit: cover; }
-.live-chip > div { display: grid; min-width: 0; flex: 1; }
+.live-chip-who { display: flex; min-width: 0; flex: 1; align-items: center; gap: 10px; }
+.live-chip-who > div { display: grid; min-width: 0; flex: 1; }
 .live-chip strong { overflow: hidden; font-size: 15px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
 .live-chip span { display: inline-flex; align-items: center; gap: 4px; color: rgba(255,255,255,.8); font-size: 12px; font-weight: 700; }
 .live-follow { display: grid; width: 40px; height: 40px; flex: 0 0 auto; place-items: center; border-radius: 50%; background: var(--primary); color: #fff; transition: filter .15s, background .15s; }

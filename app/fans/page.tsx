@@ -25,7 +25,9 @@ export default async function FansPage() {
             <li key={fan.id} className="acct-row">
               <img src={fan.avatarUrl ?? '/placeholder-user.jpg'} alt="" className="acct-row-avatar" />
               <div className="acct-row-body">
-                <strong>{fan.displayName}</strong>
+                <strong>
+                  <Link href={`/${fan.handle}`}>{fan.displayName}</Link>
+                </strong>
                 <span>@{fan.handle} · since {dateFormat.format(new Date(fan.followedAt))}</span>
               </div>
               <span className={`acct-badge${fan.followsBack ? ' is-on' : ''}`}>

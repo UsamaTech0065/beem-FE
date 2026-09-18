@@ -179,7 +179,9 @@ export function ChatThread({ me, conversation, onBack, onChanged }: Props) {
           <UserAvatar className="thread-avatar" src={peer.avatarUrl} name={peer.displayName} size={50} />
         </span>
         <div className="thread-title">
-          <h2>{peer.displayName}</h2>
+          <h2>
+            <Link href={`/${peer.handle}`}>{peer.displayName}</Link>
+          </h2>
           {peer.liveStreamId ? (
             <Link href={`/stream/${peer.liveStreamId}`} className="thread-live">
               Live now

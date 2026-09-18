@@ -160,13 +160,16 @@ export function StreamRoom({ stream, user, studio }: Props) {
         {/* Host chip over the picture, with follow for everyone but the host. */}
         {!over && (
           <div className="live-chip">
-            <UserAvatar src={stream.host.avatarUrl} name={stream.host.displayName} size={44} />
-            <div>
-              <strong>{stream.host.displayName}</strong>
-              <span>
-                <Gem size={13} strokeWidth={2.2} /> {formatDiamonds(stream.diamondsTotal)}
-              </span>
-            </div>
+            {/* Opens their profile; the stream carries on in the mini player. */}
+            <Link href={`/${stream.host.handle}`} className="live-chip-who" aria-label={`${stream.host.displayName}'s profile`}>
+              <UserAvatar src={stream.host.avatarUrl} name={stream.host.displayName} size={44} />
+              <div>
+                <strong>{stream.host.displayName}</strong>
+                <span>
+                  <Gem size={13} strokeWidth={2.2} /> {formatDiamonds(stream.diamondsTotal)}
+                </span>
+              </div>
+            </Link>
             {!isHost && (
               <button
                 type="button"

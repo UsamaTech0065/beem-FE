@@ -68,7 +68,7 @@ export function AccountMenu({ user, onClose, onSignOut }: Props) {
 
   return (
     <div className="acct-menu" ref={panel} role="menu" aria-label="Account">
-      <Link href="/statistics" className="acct-profile" onClick={onClose} role="menuitem">
+      <Link href={`/${user.handle}`} className="acct-profile" onClick={onClose} role="menuitem">
         <img src={user.avatarUrl ?? '/placeholder-user.jpg'} alt="" className="acct-profile-avatar" />
         <div className="acct-profile-body">
           <strong>{user.displayName}</strong>

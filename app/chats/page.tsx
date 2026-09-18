@@ -8,8 +8,10 @@ import { getAccessToken } from '@/lib/session'
 
 export const dynamic = 'force-dynamic'
 
-export default async function ChatsPage() {
-  const user = await getCurrentUser(await getAccessToken())
+type Props = { searchParams: Promise<{ c?: string }> }
+
+export default async function ChatsPage({ searchParams }: Props) {
+  const [user, { c: initialChatId }] = await Promise.all([getCurrentUser(await getAccessToken()), searchParams])
 
   // Conversations belong to an account, so a visitor gets the sign-in wall.
   if (!user) {
@@ -23,7 +25,7 @@ export default async function ChatsPage() {
   return (
     <main className="beem-app chats-page">
       <TopNav user={user} />
-      <ChatWorkspace user={user} />
+      <ChatWorkspace user={user} initialChatId={initialChatId ?? null} />
       <ActionRail />
       <MobileBottomNav />
     </main>

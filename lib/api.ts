@@ -5,6 +5,7 @@ import type {
   Fan,
   LiveFollowedEntry,
   Page,
+  ProfilePage,
   StreamCard,
   StreamDetail,
 } from './api-types'
@@ -139,6 +140,15 @@ export function getCategories() {
 export function getCurrentUser(accessToken: string | null) {
   if (!accessToken) return Promise.resolve(null)
   return safe(apiFetch<CurrentUser>('/auth/me', { accessToken }), null, 'current user')
+}
+
+/** Someone's public page, or null when there is no such handle. */
+export function getProfile(handle: string, accessToken: string | null) {
+  return safe(
+    apiFetch<ProfilePage>(`/users/${encodeURIComponent(handle)}`, { accessToken }),
+    null,
+    'profile',
+  )
 }
 
 export function getCreatorStats(accessToken: string | null) {

@@ -63,6 +63,22 @@ export type StreamConnection = {
   hostIdentity: string
 }
 
+/** A person's public page at /<handle>. */
+export type ProfilePage = PublicUser & {
+  bio: string | null
+  role: UserRole
+  createdAt: string
+  followerCount: number
+  followingCount: number
+  /** Diamonds earned across all their streams, as a decimal string. */
+  diamondsTotal: string
+  liveStream: { id: string; title: string; viewerCount: number } | null
+  /** The viewer is looking at their own page. */
+  isSelf: boolean
+  /** Null when nobody is signed in, or on your own page. */
+  isFollowing: boolean | null
+}
+
 /** ---- direct messages ---- */
 
 export type ChatPeer = PublicUser & {
