@@ -126,6 +126,8 @@ export type DmConversation = {
   peer: ChatPeer
   favorite: boolean
   unreadCount: number
+  /** They started following you in the last two weeks. */
+  fromNewFollower: boolean
   lastMessage: DmMessage | null
   lastMessageAt: string
 }
@@ -145,6 +147,12 @@ export type Fan = PublicUser & {
   followedAt: string
   followsBack: boolean
 }
+
+/** A public post on the home page, with who wrote it. */
+export type FeedPost = ProfilePost & { author: PublicUser }
+
+/** A member shown in the "New on beem" row. */
+export type NewMember = PublicUser & { liveStreamId: string | null }
 
 export type Category = { slug: string; name: string }
 

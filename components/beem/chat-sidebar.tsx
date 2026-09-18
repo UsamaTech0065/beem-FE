@@ -2,25 +2,36 @@
 
 import { useState } from 'react'
 import { Hand, Heart, Inbox, Plus, Search, SquarePen, Video } from 'lucide-react'
-import type { ChatPeer, CurrentUser, DmConversation } from '@/lib/api-types'
+import type { ChatPeer, CurrentUser, DmConversation, Fan } from '@/lib/api-types'
 import { ChatRow } from './chat-row'
 import { WELCOME_CHAT_ID } from './chat-workspace'
 import { UserAvatar } from './user-avatar'
 
-const FILTERS = ['All', 'Unread', 'Favorites'] as const
+const FILTERS = ['All', 'Unread', 'New Followers', 'Favorites'] as const
 type Filter = (typeof FILTERS)[number]
+
+/** Matches the API's window for flagging a conversation as coming from a new follower. */
+const NEW_FOLLOWER_MS = 14 * 86_400_000
+
+const EMPTY_TEXT: Record<Exclude<Filter, 'All'>, string> = {
+  Unread: 'Nothing unread yet.',
+  Favorites: 'Nothing favourited yet.',
+  'New Followers': 'No new followers in the last two weeks.',
+}
 
 type Props = {
   me: CurrentUser
   conversations: DmConversation[]
   suggested: ChatPeer[]
+  /** Everyone who follows the signed-in person, newest first. */
+  fans: Fan[]
   loaded: boolean
   selectedId: string | null
   onSelect: (id: string) => void
   onOpenWith: (peer: ChatPeer, sayHi: boolean) => void
 }
 
-export function ChatSidebar({ me, conversations, suggested, loaded, selectedId, onSelect, onOpenWith }: Props) {
+export function ChatSidebar({ me, conversations, suggested, fans, loaded, selectedId, onSelect, onOpenWith }: Props) {
   const [filter, setFilter] = useState<Filter>('All')
   const [query, setQuery] = useState('')
 
@@ -28,10 +39,26 @@ export function ChatSidebar({ me, conversations, suggested, loaded, selectedId, 
   const visible = conversations.filter((chat) => {
     if (filter === 'Unread' && chat.unreadCount === 0) return false
     if (filter === 'Favorites' && !chat.favorite) return false
+    if (filter === 'New Followers' && !chat.fromNewFollower) return false
     if (needle && !chat.peer.displayName.toLowerCase().includes(needle) && !chat.peer.handle.includes(needle)) return false
     return true
   })
   const showWelcome = filter === 'All' && (!needle || 'beem'.includes(needle))
+
+  // New followers who have written and not been read yet: the number on the tab.
+  const newFollowerUnread = conversations.filter((chat) => chat.fromNewFollower && chat.unreadCount > 0).length
+
+  // New followers with no conversation yet get a row of their own, so they can be greeted.
+  const talkingTo = new Set(conversations.map((chat) => chat.peer.id))
+  const silentNewFollowers =
+    filter === 'New Followers'
+      ? fans.filter(
+          (fan) =>
+            !talkingTo.has(fan.id) &&
+            Date.now() - new Date(fan.followedAt).getTime() < NEW_FOLLOWER_MS &&
+            (!needle || fan.displayName.toLowerCase().includes(needle) || fan.handle.includes(needle)),
+        )
+      : []
 
   return (
     <aside className="chat-sidebar">
@@ -65,6 +92,11 @@ export function ChatSidebar({ me, conversations, suggested, loaded, selectedId, 
           >
             {name === 'Favorites' && <Heart size={15} fill="#e5484d" strokeWidth={0} />}
             {name}
+            {name === 'New Followers' && newFollowerUnread > 0 && (
+              <b className="chat-filter-count" aria-label={`${newFollowerUnread} unread`}>
+                {newFollowerUnread}
+              </b>
+            )}
           </button>
         ))}
         <button type="button" className="chat-filter-add" aria-label="Add filter" disabled title="Custom filters are coming soon">
@@ -102,8 +134,23 @@ export function ChatSidebar({ me, conversations, suggested, loaded, selectedId, 
           />
         ))}
 
-        {loaded && visible.length === 0 && filter !== 'All' && (
-          <p className="chat-list-empty">Nothing {filter === 'Unread' ? 'unread' : 'favourited'} yet.</p>
+        {silentNewFollowers.map((fan) => (
+          <div key={fan.id} className="chat-suggest">
+            <button type="button" className="chat-suggest-main" onClick={() => onOpenWith({ ...fan, liveStreamId: null }, false)}>
+              <UserAvatar className="chat-avatar" src={fan.avatarUrl} name={fan.displayName} size={64} />
+              <span className="chat-row-copy">
+                <strong>{fan.displayName}</strong>
+                <span>Started following you</span>
+              </span>
+            </button>
+            <button type="button" className="chat-suggest-action" onClick={() => onOpenWith({ ...fan, liveStreamId: null }, true)}>
+              <Hand size={15} strokeWidth={2.2} /> Say hi
+            </button>
+          </div>
+        ))}
+
+        {loaded && filter !== 'All' && visible.length === 0 && silentNewFollowers.length === 0 && (
+          <p className="chat-list-empty">{EMPTY_TEXT[filter]}</p>
         )}
 
         {suggested.length > 0 && filter === 'All' && !needle && (

@@ -160,7 +160,29 @@
 /* ---- home page extras: followed rail and promos ---- */
 .content-section { margin-bottom: 26px; }
 .section-heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-.section-heading h1 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -.04em; }
+.section-heading h1, .section-heading h2 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -.04em; }
+
+/* ---- For You: newest members and newest posts ---- */
+.people-rail, .postrail { display: grid; grid-auto-flow: column; justify-content: start; gap: var(--grid-gap); overflow-x: auto; margin: 0; padding: 4px 2px 8px; list-style: none; scrollbar-width: none; }
+.people-rail::-webkit-scrollbar, .postrail::-webkit-scrollbar { display: none; }
+.people-rail { grid-auto-columns: 92px; }
+.people-card { display: grid; justify-items: center; gap: 8px; text-align: center; }
+.people-ring { position: relative; display: block; border: 2px solid transparent; border-radius: 50%; padding: 3px; }
+.people-ring.is-live { border-color: var(--primary); }
+.people-ring .ua { display: grid; width: 72px; height: 72px; background: var(--secondary); }
+.people-ring b { position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); border: 2px solid var(--background); border-radius: 6px; background: var(--primary); padding: 0 6px; color: #fff; font-size: 10px; font-weight: 800; letter-spacing: .05em; }
+.people-card strong { width: 100%; overflow: hidden; font-size: 13px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.postrail { grid-auto-columns: 200px; }
+.postrail-card { display: grid; grid-template-rows: auto auto; overflow: hidden; border: 1px solid var(--border); border-radius: 16px; background: var(--background); transition: box-shadow .15s, transform .15s; }
+.postrail-card:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(23,23,28,.1); }
+.postrail-media { display: block; width: 100%; aspect-ratio: 4 / 5; object-fit: cover; background: var(--secondary); }
+.postrail-quote { display: -webkit-box; aspect-ratio: 4 / 5; margin: 0; overflow: hidden; background: linear-gradient(135deg, #fff1f6, #f4f0ff); padding: 20px 16px; font-size: 16px; font-weight: 600; line-height: 1.45; overflow-wrap: anywhere; -webkit-box-orient: vertical; -webkit-line-clamp: 9; }
+.postrail-foot { display: flex; min-width: 0; align-items: center; gap: 8px; padding: 10px 12px; }
+.postrail-foot .ua { width: 28px; height: 28px; flex: 0 0 auto; background: var(--secondary); }
+.postrail-foot > span { display: grid; min-width: 0; gap: 1px; }
+.postrail-foot strong, .postrail-foot small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.postrail-foot strong { font-size: 13px; font-weight: 700; }
+.postrail-foot small { color: var(--muted-foreground); font-size: 12px; }
 .live-pill { border-radius: 99px; background: var(--primary); padding: 4px 9px; color: white; font-size: 11px; font-weight: 800; }
 .circle-button { display: grid; width: 44px; height: 44px; place-items: center; border: 1px solid var(--border); border-radius: 50%; background: white; }
 .story-rail { display: grid; grid-auto-flow: column; grid-auto-columns: 158px; gap: var(--grid-gap); overflow-x: auto; padding-bottom: 6px; scrollbar-width: none; }
@@ -307,6 +329,11 @@
   .stream-info h2 { font-size: 14px; }
   .stream-info p { font-size: 12px; }
   .story-rail { grid-auto-columns: 118px; }
+  .section-heading h2 { font-size: 20px; }
+  .people-rail { grid-auto-columns: 76px; }
+  .people-ring .ua { width: 58px; height: 58px; }
+  .postrail { grid-auto-columns: 150px; }
+  .postrail-quote { padding: 14px 12px; font-size: 14px; -webkit-line-clamp: 8; }
   .promo-grid { grid-template-columns: 1fr; }
   .promo-banner { min-height: 100px; padding: 14px 18px; }
   .promo-banner p { font-size: 18px; }

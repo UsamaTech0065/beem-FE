@@ -21,7 +21,8 @@
 .chat-toolbar > button:hover:not(:disabled) { background: var(--secondary); }
 .chat-toolbar > button:disabled { opacity: .45; cursor: not-allowed; }
 
-.chat-filters { display: flex; align-items: center; gap: 8px; padding: 4px 12px 14px; }
+.chat-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 4px 12px 14px; }
+.chat-filter-count { color: var(--primary); font-size: 13px; font-weight: 700; }
 .chat-filters button { display: inline-flex; align-items: center; gap: 5px; height: 34px; border: 1px solid var(--border); border-radius: 999px; padding: 0 14px; color: var(--foreground); font-size: 14px; font-weight: 600; transition: background .15s, border-color .15s; }
 .chat-filters button.active { border-color: transparent; background: var(--secondary); font-weight: 700; }
 .chat-filters button:hover:not(:disabled) { background: var(--secondary); }

@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { ChatPeer, CurrentUser, DmConversation } from '@/lib/api-types'
+import type { ChatPeer, CurrentUser, DmConversation, Fan } from '@/lib/api-types'
 import { ChatEmptyState } from './chat-empty-state'
 import { ChatSidebar } from './chat-sidebar'
 import { ChatThread } from './chat-thread'
@@ -21,6 +21,7 @@ type Props = {
 export function ChatWorkspace({ user, initialChatId = null }: Props) {
   const [conversations, setConversations] = useState<DmConversation[]>([])
   const [suggested, setSuggested] = useState<ChatPeer[]>([])
+  const [fans, setFans] = useState<Fan[]>([])
   const [loaded, setLoaded] = useState(false)
   const [selectedId, setSelectedId] = useState<string | null>(initialChatId)
   const [error, setError] = useState<string | null>(null)
@@ -28,12 +29,14 @@ export function ChatWorkspace({ user, initialChatId = null }: Props) {
   selectedRef.current = selectedId
 
   const refresh = useCallback(async () => {
-    const [list, people] = await Promise.all([
+    const [list, people, followers] = await Promise.all([
       fetch('/api/chats').then((r) => (r.ok ? (r.json() as Promise<DmConversation[]>) : [])),
       fetch('/api/chats/suggested').then((r) => (r.ok ? (r.json() as Promise<ChatPeer[]>) : [])),
-    ]).catch(() => [[], []] as [DmConversation[], ChatPeer[]])
+      fetch('/api/follows/fans').then((r) => (r.ok ? (r.json() as Promise<Fan[]>) : [])),
+    ]).catch(() => [[], [], []] as [DmConversation[], ChatPeer[], Fan[]])
     setConversations(list)
     setSuggested(people)
+    setFans(followers)
     setLoaded(true)
   }, [])
 
@@ -76,6 +79,7 @@ export function ChatWorkspace({ user, initialChatId = null }: Props) {
         me={user}
         conversations={conversations}
         suggested={suggested}
+        fans={fans}
         loaded={loaded}
         selectedId={selectedId}
         onSelect={setSelectedId}

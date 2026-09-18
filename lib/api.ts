@@ -4,7 +4,9 @@ import type {
   CurrentUser,
   EditableProfile,
   Fan,
+  FeedPost,
   LiveFollowedEntry,
+  NewMember,
   Page,
   ProfilePage,
   ProfilePost,
@@ -164,6 +166,15 @@ export function getProfilePosts(handle: string, accessToken: string | null) {
 export function getEditableProfile(accessToken: string | null) {
   if (!accessToken) return Promise.resolve<EditableProfile | null>(null)
   return safe(apiFetch<EditableProfile>('/users/me', { accessToken }), null, 'own profile')
+}
+
+/** The newest public posts from anyone. Empty when the API is down: there is no honest stand-in. */
+export function getLatestPosts(limit = 12) {
+  return safe(apiFetch<FeedPost[]>(`/posts/latest?limit=${limit}`), [], 'latest posts')
+}
+
+export function getNewMembers() {
+  return safe(apiFetch<NewMember[]>('/users/discover/new'), [], 'new members')
 }
 
 export function getCreatorStats(accessToken: string | null) {
