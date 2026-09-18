@@ -25,7 +25,12 @@ export type ChatMessage = {
   at: number
   /** Marks a line the host wrote. */
   fromHost: boolean
+  /** 'follow' is the announcement that someone followed the host; it has no text. */
+  kind: 'chat' | 'follow'
 }
+
+/** The celebration shown over the picture when someone follows. `id` changes per burst so it can replay. */
+export type FollowBurst = { id: string; name: string }
 
 export type LiveRoom = {
   phase: LivePhase
@@ -46,6 +51,8 @@ export type LiveRoom = {
   /** Host only: the front camera is in use, so the self-view should be mirrored. */
   facingUser: boolean
   messages: ChatMessage[]
+  /** The most recent follow to celebrate, for everyone in the room. */
+  followBurst: FollowBurst | null
   /**
    * The host's picture and sound, as tracks rather than elements, so the same
    * stream can show in the room page and in the mini player without reconnecting.
@@ -59,6 +66,8 @@ export type LiveRoom = {
   unblockAudio: () => Promise<void>
   toggleMuted: () => void
   sendChat: (text: string) => Promise<void>
+  /** Tells the room this viewer just followed the host. Call it after the follow is saved. */
+  announceFollow: () => Promise<void>
   /** Leaves the room without ending the stream. */
   leave: () => void
 }
@@ -71,6 +80,8 @@ export type LiveRoomOptions = {
 }
 
 const CHAT_TOPIC = 'chat'
+/** Room-wide moments that are not chat lines, such as a follow. */
+const EVENT_TOPIC = 'event'
 const CHAT_HISTORY = 60
 const CHAT_MAX_LENGTH = 200
 
@@ -96,6 +107,7 @@ export function useLiveRoom(streamId: string | null, sender: ChatSender | null, 
   const [canFlipCamera, setCanFlipCamera] = useState(false)
   const [facingUser, setFacingUser] = useState(true)
   const [messages, setMessages] = useState<ChatMessage[]>([])
+  const [followBurst, setFollowBurst] = useState<FollowBurst | null>(null)
   const [videoTrack, setVideoTrack] = useState<Track | null>(null)
   const [audioTrack, setAudioTrack] = useState<Track | null>(null)
 
@@ -105,6 +117,26 @@ export function useLiveRoom(streamId: string | null, sender: ChatSender | null, 
   const livekitRef = useRef<typeof import('livekit-client') | null>(null)
   const senderRef = useRef(sender)
   senderRef.current = sender
+  // Identities already celebrated in this room.
+  const celebratedRef = useRef(new Set<string>())
+
+  /**
+   * Shows the follow burst and adds its line to chat. Once per person per room:
+   * the message arrives from other browsers, so a follow/unfollow loop (or a
+   * scripted sender) must not be able to flood everyone's screen.
+   */
+  const celebrate = useCallback((identity: string, name: string, avatarUrl: string | null) => {
+    if (celebratedRef.current.has(identity)) return
+    celebratedRef.current.add(identity)
+
+    const at = Date.now()
+    setFollowBurst({ id: `${identity}:${at}`, name })
+    setMessages((list) =>
+      [...list, { id: `follow:${identity}:${at}`, identity, name, avatarUrl, text: '', at, fromHost: false, kind: 'follow' as const }].slice(
+        -CHAT_HISTORY,
+      ),
+    )
+  }, [])
 
   useEffect(() => {
     if (!streamId) {
@@ -123,6 +155,8 @@ export function useLiveRoom(streamId: string | null, sender: ChatSender | null, 
     setViewerCount(0)
     setPeakViewers(0)
     setMessages([])
+    setFollowBurst(null)
+    celebratedRef.current = new Set()
     setVideoTrack(null)
     setAudioTrack(null)
     setCanFlipCamera(false)
@@ -217,9 +251,15 @@ export function useLiveRoom(streamId: string | null, sender: ChatSender | null, 
           if (!cancelled && room) setAudioBlocked(!room.canPlaybackAudio)
         })
         .on(RoomEvent.DataReceived, (payload, participant, _kind, topic) => {
-          if (cancelled || topic !== CHAT_TOPIC || !participant) return
-          const message = parseChat(decoder.decode(payload), participant.identity, fromHost(participant))
-          if (message) setMessages((list) => [...list, message].slice(-CHAT_HISTORY))
+          if (cancelled || !participant) return
+          if (topic === CHAT_TOPIC) {
+            const message = parseChat(decoder.decode(payload), participant.identity, fromHost(participant))
+            if (message) setMessages((list) => [...list, message].slice(-CHAT_HISTORY))
+          } else if (topic === EVENT_TOPIC && !fromHost(participant)) {
+            // A host cannot follow themselves, so an event from the host is ignored.
+            const event = parseFollowEvent(decoder.decode(payload))
+            if (event) celebrate(participant.identity, event.name, event.avatarUrl)
+          }
         })
         .on(RoomEvent.Disconnected, (reason) => {
           if (cancelled) return
@@ -275,7 +315,7 @@ export function useLiveRoom(streamId: string | null, sender: ChatSender | null, 
       roomRef.current = null
       void room?.disconnect()
     }
-  }, [streamId, studio])
+  }, [streamId, studio, celebrate])
 
   const toggleMic = useCallback(async () => {
     const local = roomRef.current?.localParticipant
@@ -326,16 +366,26 @@ export function useLiveRoom(streamId: string | null, sender: ChatSender | null, 
       text,
       at: Date.now(),
       fromHost: room.localParticipant.identity === hostIdentityRef.current,
+      kind: 'chat',
     }
 
     // Data messages are not echoed back to their sender, so add it locally.
     setMessages((list) => [...list, message].slice(-CHAT_HISTORY))
-    // TextEncoder types its output over ArrayBufferLike; publishData wants a plain ArrayBuffer.
-    const bytes = new TextEncoder().encode(JSON.stringify(message))
-    const payload = new Uint8Array(new ArrayBuffer(bytes.byteLength))
-    payload.set(bytes)
-    await room.localParticipant.publishData(payload, { reliable: true, topic: CHAT_TOPIC })
+    await room.localParticipant.publishData(encode(message), { reliable: true, topic: CHAT_TOPIC })
   }, [])
+
+  const announceFollow = useCallback(async () => {
+    const room = roomRef.current
+    const who = senderRef.current
+    if (!room || !who) return
+
+    // Not echoed back to the sender, so celebrate locally as well.
+    celebrate(room.localParticipant.identity, who.name, who.avatarUrl)
+    await room.localParticipant.publishData(encode({ type: 'follow', name: who.name, avatarUrl: who.avatarUrl }), {
+      reliable: true,
+      topic: EVENT_TOPIC,
+    })
+  }, [celebrate])
 
   const leave = useCallback(() => {
     void roomRef.current?.disconnect()
@@ -354,6 +404,7 @@ export function useLiveRoom(streamId: string | null, sender: ChatSender | null, 
     canFlipCamera,
     facingUser,
     messages,
+    followBurst,
     videoTrack,
     audioTrack,
     toggleMic,
@@ -362,7 +413,30 @@ export function useLiveRoom(streamId: string | null, sender: ChatSender | null, 
     unblockAudio,
     toggleMuted,
     sendChat,
+    announceFollow,
     leave,
+  }
+}
+
+/** TextEncoder types its output over ArrayBufferLike; publishData wants a plain ArrayBuffer. */
+function encode(value: unknown): Uint8Array<ArrayBuffer> {
+  const bytes = new TextEncoder().encode(JSON.stringify(value))
+  const payload = new Uint8Array(new ArrayBuffer(bytes.byteLength))
+  payload.set(bytes)
+  return payload
+}
+
+/** Like chat, this comes from another browser: take the display fields only, and bound them. */
+function parseFollowEvent(raw: string): { name: string; avatarUrl: string | null } | null {
+  try {
+    const data = JSON.parse(raw) as { type?: unknown; name?: unknown; avatarUrl?: unknown }
+    if (data.type !== 'follow') return null
+    return {
+      name: typeof data.name === 'string' && data.name.trim() ? data.name.trim().slice(0, 48) : 'Someone',
+      avatarUrl: typeof data.avatarUrl === 'string' && data.avatarUrl.startsWith('http') ? data.avatarUrl : null,
+    }
+  } catch {
+    return null
   }
 }
 
@@ -382,6 +456,7 @@ function parseChat(raw: string, identity: string, fromHost: boolean): ChatMessag
       text: data.text.trim().slice(0, CHAT_MAX_LENGTH),
       at: typeof data.at === 'number' ? data.at : Date.now(),
       fromHost,
+      kind: 'chat',
     }
   } catch {
     return null

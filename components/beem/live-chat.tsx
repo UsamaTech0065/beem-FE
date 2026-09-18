@@ -47,14 +47,23 @@ export function LiveChat({ messages, me, onSend, onSignIn, disabled = false }: P
   return (
     <div className="lc">
       <ol className="lc-list" ref={list} aria-live="polite" aria-label="Chat">
-        {messages.map((message) => (
-          <li key={message.id} className={`lc-line${message.fromHost ? ' is-host' : ''}`}>
-            <UserAvatar src={message.avatarUrl} name={message.name} size={26} />
-            <span>
-              <strong>{message.name}</strong> {message.text}
-            </span>
-          </li>
-        ))}
+        {messages.map((message) =>
+          message.kind === 'follow' ? (
+            <li key={message.id} className="lc-line is-follow">
+              <UserAvatar src={message.avatarUrl} name={message.name} size={26} />
+              <span>
+                <strong>{message.name}</strong> <span className="lc-follow-tag">Follow</span> <em>Free</em>
+              </span>
+            </li>
+          ) : (
+            <li key={message.id} className={`lc-line${message.fromHost ? ' is-host' : ''}`}>
+              <UserAvatar src={message.avatarUrl} name={message.name} size={26} />
+              <span>
+                <strong>{message.name}</strong> {message.text}
+              </span>
+            </li>
+          ),
+        )}
       </ol>
 
       {me ? (

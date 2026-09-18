@@ -234,6 +234,33 @@
 .ended-thanks { margin: 16px 0 0; color: rgba(255,255,255,.8); }
 .ended .acct-btn { margin-top: 26px; }
 
+/* ---- follow celebration ---- */
+.follow-burst { position: absolute; inset: 0; z-index: 4; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; pointer-events: none; animation: follow-burst-out .5s ease-in 2.3s both; }
+/* container-type lets the word scale with the heart (cqw) rather than the window, so it always sits inside it. */
+.follow-burst-heart { position: relative; container-type: inline-size; display: grid; width: min(78%, 420px); place-items: center; filter: drop-shadow(0 18px 40px rgba(224,20,138,.55)); animation: follow-burst-pop .7s cubic-bezier(.2, 1.4, .4, 1) both, follow-burst-beat 1s ease-in-out .7s 2; }
+.follow-burst-heart svg { width: 100%; height: auto; }
+.follow-burst-word { position: absolute; top: 44%; left: 50%; transform: translate(-50%, -50%); color: #fff; font-size: 17cqw; font-weight: 900; letter-spacing: .02em; text-shadow: 0 3px 0 rgba(176,14,108,.9), 0 8px 18px rgba(0,0,0,.25); }
+.follow-burst-name { margin: 0; border-radius: 999px; background: rgba(0,0,0,.55); padding: 7px 16px; color: #fff; font-size: 15px; font-weight: 800; backdrop-filter: blur(8px); animation: follow-burst-name .5s ease-out .35s both; }
+@keyframes follow-burst-pop {
+  0% { opacity: 0; transform: scale(.15) rotate(-14deg); }
+  60% { opacity: 1; transform: scale(1.12) rotate(4deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0); }
+}
+@keyframes follow-burst-beat {
+  0%, 100% { transform: scale(1); }
+  45% { transform: scale(1.07); }
+}
+@keyframes follow-burst-name {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes follow-burst-out {
+  to { opacity: 0; transform: translateY(-40px) scale(.9); }
+}
+.lc-line.is-follow strong { color: #fff; }
+.lc-line.is-follow em { font-style: normal; font-weight: 800; }
+.lc-follow-tag { display: inline-grid; place-items: center; border-radius: 50% 50% 46% 46%; background: linear-gradient(180deg, #ff5aa5, #ff2d87); padding: 3px 8px; color: #fff; font-size: 10px; font-weight: 800; vertical-align: 1px; }
+
 /* ---- emoji picker ---- */
 .emoji-picker { position: absolute; right: 0; bottom: calc(100% + 10px); z-index: 20; display: grid; grid-template-columns: repeat(8, 36px); gap: 2px; border-radius: 16px; padding: 10px; box-shadow: 0 14px 40px rgba(0,0,0,.35); }
 .emoji-picker button { display: grid; width: 36px; height: 36px; place-items: center; border-radius: 10px; font-size: 22px; line-height: 1; transition: background .12s; }
@@ -293,6 +320,7 @@
    Responsive
    ========================================================================= */
 @media (prefers-reduced-motion: reduce) {
+  .follow-burst, .follow-burst-heart, .follow-burst-name { animation: none; }
   .stream-card-link .stream-image { transition: none; }
   .tg-live-dot, .live-dot { animation: none; }
 }
@@ -340,8 +368,11 @@
   .live-actions .live-round { width: 40px; height: 40px; }
   .live-viewers { height: 40px; padding: 0 12px; font-size: 14px; }
   .live-state { height: 40px; padding: 0 14px; font-size: 13px; }
-  /* Stops short of the gift rail, so the follow button is never underneath it. */
-  .live-chip { right: 74px; bottom: 90px; left: 12px; }
+  /* Top-left under the back arrow: chat grows upward from the bottom and must not run into it. */
+  .live-chip { top: 62px; right: auto; bottom: auto; left: 12px; max-width: calc(100% - 96px); padding-right: 6px; }
+  .live-chip .ua { width: 38px; height: 38px; }
+  .live-follow { width: 34px; height: 34px; }
+  .live.is-host .live-chip { display: none; }
   .live-bottom-left { right: 80px; bottom: calc(12px + env(safe-area-inset-bottom)); left: 12px; width: auto; }
   .live-controls { bottom: calc(16px + env(safe-area-inset-bottom)); }
   .live.is-host .live-bottom-left { bottom: calc(86px + env(safe-area-inset-bottom)); right: 12px; }

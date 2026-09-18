@@ -25,6 +25,7 @@ import {
 } from 'lucide-react'
 import { formatDiamonds, type CurrentUser, type RtmpIngress, type StreamDetail } from '@/lib/api-types'
 import { ObsGuide } from './broadcast-studio'
+import { FollowBurst } from './follow-burst'
 import { GIFTS, GiftPanel } from './gift-panel'
 import { LiveChat } from './live-chat'
 import { LiveEnded } from './live-ended'
@@ -102,8 +103,11 @@ export function StreamRoom({ stream, user, studio }: Props) {
       method: following ? 'DELETE' : 'POST',
     }).catch(() => null)
     setFollowBusy(false)
-    if (response?.ok) setFollowing(!following)
-    else setToast('Could not update follow. Try again.')
+    if (!response?.ok) return setToast('Could not update follow. Try again.')
+
+    setFollowing(!following)
+    // Only a new follow is celebrated, and only once it is actually saved.
+    if (!following) void room.announceFollow()
   }
 
   async function share() {
@@ -218,6 +222,8 @@ export function StreamRoom({ stream, user, studio }: Props) {
             </>
           )}
         </div>
+
+        <FollowBurst burst={attached ? room.followBurst : null} />
 
         {room.audioBlocked && phase === 'live' && (
           <button type="button" className="live-unmute" onClick={room.unblockAudio}>
