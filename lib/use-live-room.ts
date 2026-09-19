@@ -112,6 +112,9 @@ export function useLiveRoom(streamId: string | null, sender: ChatSender | null, 
   const [audioTrack, setAudioTrack] = useState<Track | null>(null)
 
   const roomRef = useRef<Room | null>(null)
+  // Clears the follow burst a moment after it plays, so the persistent room
+  // (kept alive by the session provider) does not replay an old one on re-open.
+  const burstTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const hostIdentityRef = useRef<string | null>(null)
   // The library is imported on demand; callbacks outside the effect reach it here.
   const livekitRef = useRef<typeof import('livekit-client') | null>(null)
@@ -131,6 +134,10 @@ export function useLiveRoom(streamId: string | null, sender: ChatSender | null, 
 
     const at = Date.now()
     setFollowBurst({ id: `${identity}:${at}`, name })
+    // Drop the burst from state once it has been on screen, so it is not still
+    // pending when the room is re-opened later.
+    if (burstTimerRef.current) clearTimeout(burstTimerRef.current)
+    burstTimerRef.current = setTimeout(() => setFollowBurst(null), 3_200)
     setMessages((list) =>
       [...list, { id: `follow:${identity}:${at}`, identity, name, avatarUrl, text: '', at, fromHost: false, kind: 'follow' as const }].slice(
         -CHAT_HISTORY,
@@ -156,6 +163,7 @@ export function useLiveRoom(streamId: string | null, sender: ChatSender | null, 
     setPeakViewers(0)
     setMessages([])
     setFollowBurst(null)
+    if (burstTimerRef.current) clearTimeout(burstTimerRef.current)
     celebratedRef.current = new Set()
     setVideoTrack(null)
     setAudioTrack(null)
@@ -313,6 +321,7 @@ export function useLiveRoom(streamId: string | null, sender: ChatSender | null, 
     return () => {
       cancelled = true
       roomRef.current = null
+      if (burstTimerRef.current) clearTimeout(burstTimerRef.current)
       void room?.disconnect()
     }
   }, [streamId, studio, celebrate])

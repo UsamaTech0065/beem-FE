@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useId, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import type { FollowBurst as Burst } from '@/lib/use-live-room'
 
 /** Long enough to read, short enough that a second follow soon after still gets its moment. */
@@ -13,10 +13,14 @@ const SHOW_MS = 2_800
  */
 export function FollowBurst({ burst }: { burst: Burst | null }) {
   const [shown, setShown] = useState<Burst | null>(null)
+  const lastId = useRef<string | null>(null)
   const gradient = useId()
 
   useEffect(() => {
-    if (!burst) return
+    // Play each burst once. Without this, a re-render that briefly nulls the
+    // prop (e.g. the video re-attaching) would replay the same celebration.
+    if (!burst || burst.id === lastId.current) return
+    lastId.current = burst.id
     setShown(burst)
     const timer = setTimeout(() => setShown(null), SHOW_MS)
     return () => clearTimeout(timer)
