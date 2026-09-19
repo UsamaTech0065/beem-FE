@@ -3,12 +3,12 @@
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { useState } from 'react'
-import { Gamepad2, LogIn, Megaphone, MessageCircle, Search, ThumbsUp, Trophy, Users, X } from 'lucide-react'
+import { Gamepad2, IdCard, LogIn, MessageCircle, Network, Search, ThumbsUp, Users, X } from 'lucide-react'
 import type { CurrentUser } from '@/lib/api-types'
 import { AccountMenu } from './account-menu'
 import { BrandMark } from './brand-mark'
 import { isNavActive, navigationItems } from './data'
-import { SignInDialog } from './sign-in-dialog'
+import { SignInDialog } from './sign-in-dialog'
 import { CoinIcon, EyeFilled } from './icons'
 
 const iconMap = { 'thumbs-up': ThumbsUp, users: Users, search: Search, messages: MessageCircle, games: Gamepad2 }
@@ -73,11 +73,11 @@ export function TopNav({ user }: { user: CurrentUser | null }) {
           </div>
 
           <Link className="tg-icon-button" href="/leaders/lastday" aria-label="Leaderboard">
-            <Trophy size={26} strokeWidth={1.8} />
+            <Network size={26} strokeWidth={1.8} />
           </Link>
 
           <button className="tg-icon-button" type="button" aria-label="Announcements">
-            <Megaphone size={26} strokeWidth={1.8} />
+            <IdCard size={26} strokeWidth={1.8} />
           </button>
 
           {user?.liveStream && (

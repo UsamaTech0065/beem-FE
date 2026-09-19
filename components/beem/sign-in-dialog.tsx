@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Loader2, Mail, Send, Smartphone, X } from 'lucide-react'
 import { API_URL } from '@/lib/api'
 
@@ -14,6 +14,27 @@ const CHANNEL_LABEL: Record<Channel, string> = { sms: 'SMS', whatsapp: 'WhatsApp
 /** Until the API answers, assume the channels every deployment has. */
 const DEFAULT_CHANNELS: Channels = { sms: true, whatsapp: false, email: true }
 
+/** Set to enable "Continue with Google"; must match the API's GOOGLE_CLIENT_ID. */
+const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
+
+type GoogleTokenClient = { requestAccessToken: () => void }
+
+declare global {
+  interface Window {
+    google?: {
+      accounts?: {
+        oauth2?: {
+          initTokenClient(config: {
+            client_id: string
+            scope: string
+            callback: (response: { access_token?: string; error?: string }) => void
+          }): GoogleTokenClient
+        }
+      }
+    }
+  }
+}
+
 export function SignInDialog({ onClose }: { onClose: () => void }) {
   const router = useRouter()
   const [step, setStep] = useState<Step>('choose')
@@ -24,6 +45,83 @@ export function SignInDialog({ onClose }: { onClose: () => void }) {
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [googleReady, setGoogleReady] = useState(false)
+  const tokenClientRef = useRef<GoogleTokenClient | null>(null)
+
+  // Exchanges the Google access token for a session, registering on first use.
+  async function onGoogleToken(accessToken: string) {
+    setBusy(true)
+    setError(null)
+    const response = await post('/api/auth/google', { accessToken })
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({ message: 'Google sign-in failed.' }))
+      setBusy(false)
+      setError(body.message)
+      return
+    }
+    router.refresh()
+    onClose()
+  }
+
+  // Kept in a ref so the token client's one-time callback always calls the latest closure.
+  const googleHandlerRef = useRef(onGoogleToken)
+  googleHandlerRef.current = onGoogleToken
+
+  // Load Google Identity Services once, only where a client ID is configured.
+  useEffect(() => {
+    if (!GOOGLE_CLIENT_ID) return
+    let cancelled = false
+
+    function init() {
+      const oauth2 = window.google?.accounts?.oauth2
+      if (cancelled || !oauth2) return
+      tokenClientRef.current = oauth2.initTokenClient({
+        client_id: GOOGLE_CLIENT_ID as string,
+        scope: 'openid email profile',
+        callback: (response) => {
+          if (response.error || !response.access_token) {
+            setError('Google sign-in was cancelled.')
+            return
+          }
+          void googleHandlerRef.current(response.access_token)
+        },
+      })
+      setGoogleReady(true)
+    }
+
+    if (window.google?.accounts?.oauth2) {
+      init()
+      return () => {
+        cancelled = true
+      }
+    }
+
+    const src = 'https://accounts.google.com/gsi/client'
+    const existing = document.querySelector<HTMLScriptElement>(`script[src="${src}"]`)
+    if (existing) {
+      existing.addEventListener('load', init)
+      return () => {
+        cancelled = true
+        existing.removeEventListener('load', init)
+      }
+    }
+
+    const script = document.createElement('script')
+    script.src = src
+    script.async = true
+    script.defer = true
+    script.onload = init
+    document.head.appendChild(script)
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  function startGoogle() {
+    setError(null)
+    setNotice(null)
+    tokenClientRef.current?.requestAccessToken()
+  }
 
   // Hide channels the API has no sender for (WhatsApp needs a Twilio WhatsApp number).
   useEffect(() => {
@@ -142,7 +240,12 @@ export function SignInDialog({ onClose }: { onClose: () => void }) {
             <h2 id="auth-title">Welcome to beem!</h2>
 
             <div className="auth-options">
-              <button type="button" className="auth-option auth-option--dark" onClick={comingSoon('Google')}>
+              <button
+                type="button"
+                className="auth-option auth-option--dark"
+                onClick={GOOGLE_CLIENT_ID ? startGoogle : comingSoon('Google')}
+                disabled={busy || (Boolean(GOOGLE_CLIENT_ID) && !googleReady)}
+              >
                 <GoogleMark />
                 Continue with Google
               </button>
