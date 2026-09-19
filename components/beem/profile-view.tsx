@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import {
   Camera,
   Check,
@@ -159,22 +159,28 @@ export function ProfileView({ profile, posts, signedIn }: Props) {
 
           {profile.bio && <p className="profile-bio">{profile.bio}</p>}
 
-          <dl className="profile-stats">
-            <div>
-              <dt>{compactNumber(profile.diamondsTotal)}</dt>
-              <dd>
-                <Gem size={13} strokeWidth={2.2} /> Earned
-              </dd>
-            </div>
-            <div>
-              <dt>{compactNumber(followers)}</dt>
-              <dd>Followers</dd>
-            </div>
-            <div>
-              <dt>{compactNumber(profile.followingCount)}</dt>
-              <dd>Following</dd>
-            </div>
-          </dl>
+          <div className="profile-stats">
+            <Stat
+              value={compactNumber(profile.diamondsTotal)}
+              label={
+                <>
+                  <Gem size={13} strokeWidth={2.2} /> Earned
+                </>
+              }
+            />
+            {/* Followers / Following open their lists, but only on your own
+                profile — the list endpoints are for the signed-in user. */}
+            <Stat
+              value={compactNumber(followers)}
+              label="Followers"
+              href={profile.isSelf ? '/my-followers' : undefined}
+            />
+            <Stat
+              value={compactNumber(profile.followingCount)}
+              label="Following"
+              href={profile.isSelf ? '/my-following' : undefined}
+            />
+          </div>
 
           <div className="profile-actions">
             {profile.isSelf ? (
@@ -268,6 +274,23 @@ export function ProfileView({ profile, posts, signedIn }: Props) {
 }
 
 /** The tilted photo card with sparkles shown under an empty tab. */
+/** One profile stat. A link when `href` is given (own profile), else static. */
+function Stat({ value, label, href }: { value: string; label: ReactNode; href?: string }) {
+  const inner = (
+    <>
+      <span className="profile-stat-num">{value}</span>
+      <span className="profile-stat-label">{label}</span>
+    </>
+  )
+  return href ? (
+    <Link href={href} className="profile-stat profile-stat--link">
+      {inner}
+    </Link>
+  ) : (
+    <div className="profile-stat">{inner}</div>
+  )
+}
+
 function NoPostsArt() {
   return (
     <svg width="96" height="84" viewBox="0 0 96 84" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

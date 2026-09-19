@@ -25,9 +25,12 @@
 .profile-bio { margin: 6px 0 0; max-width: 720px; font-size: 16px; line-height: 1.5; overflow-wrap: anywhere; white-space: pre-line; }
 
 .profile-stats { display: flex; gap: 42px; margin: 12px 0 0; }
-.profile-stats div { display: grid; gap: 4px; }
-.profile-stats dt { font-size: 21px; font-weight: 700; letter-spacing: -.02em; }
-.profile-stats dd { display: inline-flex; align-items: center; gap: 5px; margin: 0; color: var(--muted-foreground); font-size: 14px; }
+.profile-stat { display: grid; gap: 4px; color: inherit; }
+.profile-stat-num { font-size: 21px; font-weight: 700; letter-spacing: -.02em; }
+.profile-stat-label { display: inline-flex; align-items: center; gap: 5px; margin: 0; color: var(--muted-foreground); font-size: 14px; }
+.profile-stat--link { cursor: pointer; transition: color .15s; }
+.profile-stat--link:hover .profile-stat-num { text-decoration: underline; }
+.profile-stat--link:hover .profile-stat-label { color: var(--foreground); }
 
 .profile-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 18px; }
 .profile-btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; height: 48px; border: 1px solid var(--border); border-radius: 999px; background: var(--background); padding: 0 28px; color: var(--foreground); font-size: 16px; font-weight: 700; transition: background .15s, filter .15s; }
