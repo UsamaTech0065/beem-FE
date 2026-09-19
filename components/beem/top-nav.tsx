@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Gamepad2, IdCard, LogIn, MessageCircle, Network, Search, ThumbsUp, Users, X } from 'lucide-react'
 import type { CurrentUser } from '@/lib/api-types'
 import { AccountMenu } from './account-menu'
@@ -20,6 +20,29 @@ export function TopNav({ user }: { user: CurrentUser | null }) {
   const [accountOpen, setAccountOpen] = useState(false)
   const [authOpen, setAuthOpen] = useState(false)
   const [query, setQuery] = useState('')
+
+  // Like Tango, greet a signed-out visitor with the sign-up dialog. Closing it
+  // is remembered for the session, so it opens once rather than on every page.
+  const AUTH_DISMISSED_KEY = 'beem_auth_dismissed'
+  useEffect(() => {
+    if (user) return
+    let dismissed = false
+    try {
+      dismissed = sessionStorage.getItem(AUTH_DISMISSED_KEY) === '1'
+    } catch {
+      // No storage: fall through and show it.
+    }
+    if (!dismissed) setAuthOpen(true)
+  }, [user])
+
+  function closeAuth() {
+    setAuthOpen(false)
+    try {
+      sessionStorage.setItem(AUTH_DISMISSED_KEY, '1')
+    } catch {
+      // Ignore: dismissal is a convenience.
+    }
+  }
 
   async function signOut() {
     await fetch('/api/auth/logout', { method: 'POST' })
@@ -112,7 +135,7 @@ export function TopNav({ user }: { user: CurrentUser | null }) {
 
           {user ? null : (
             <button className="tg-sign-in" type="button" onClick={() => setAuthOpen(true)}>
-              <LogIn size={22} strokeWidth={2.4} />
+              <LogIn size={18} strokeWidth={2.4} />
               Sign in
             </button>
           )}
@@ -146,7 +169,7 @@ export function TopNav({ user }: { user: CurrentUser | null }) {
         </div>
       )}
 
-      {authOpen && <SignInDialog onClose={() => setAuthOpen(false)} />}
+      {authOpen && <SignInDialog onClose={closeAuth} />}
     </header>
   )
 }

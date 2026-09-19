@@ -2,8 +2,12 @@
 
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
-import { Loader2, Mail, Send, Smartphone, X } from 'lucide-react'
+import { Clock, Loader2, Mail, Send, Smartphone, X } from 'lucide-react'
 import { API_URL } from '@/lib/api'
+import { CoinIcon } from './icons'
+
+type LastMethod = 'google' | 'email' | 'phone'
+const LAST_METHOD_KEY = 'beem_last_method'
 
 type Step = 'choose' | 'email' | 'phone' | 'code'
 type Channel = 'sms' | 'whatsapp' | 'email'
@@ -46,7 +50,26 @@ export function SignInDialog({ onClose }: { onClose: () => void }) {
   const [notice, setNotice] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [googleReady, setGoogleReady] = useState(false)
+  const [lastMethod, setLastMethod] = useState<LastMethod | null>(null)
   const tokenClientRef = useRef<GoogleTokenClient | null>(null)
+
+  // Show the "Last used" badge on whichever method signed the person in last.
+  useEffect(() => {
+    try {
+      const value = localStorage.getItem(LAST_METHOD_KEY)
+      if (value === 'google' || value === 'email' || value === 'phone') setLastMethod(value)
+    } catch {
+      // No storage (private mode); the badge simply does not show.
+    }
+  }, [])
+
+  function rememberMethod(method: LastMethod) {
+    try {
+      localStorage.setItem(LAST_METHOD_KEY, method)
+    } catch {
+      // Ignore: the badge is a convenience, not required for sign-in.
+    }
+  }
 
   // Exchanges the Google access token for a session, registering on first use.
   async function onGoogleToken(accessToken: string) {
@@ -59,6 +82,7 @@ export function SignInDialog({ onClose }: { onClose: () => void }) {
       setError(body.message)
       return
     }
+    rememberMethod('google')
     router.refresh()
     onClose()
   }
@@ -220,6 +244,7 @@ export function SignInDialog({ onClose }: { onClose: () => void }) {
       return
     }
 
+    rememberMethod(channel === 'email' ? 'email' : 'phone')
     // The session now lives in httpOnly cookies; re-render the server tree so
     // the personalised feeds pick it up.
     router.refresh()
@@ -237,7 +262,19 @@ export function SignInDialog({ onClose }: { onClose: () => void }) {
 
         {step === 'choose' && (
           <div className="auth-choice">
-            <h2 id="auth-title">Welcome to beem!</h2>
+            <h2 id="auth-title">
+              Sign up to continue
+              <br />
+              and claim Free Coins
+            </h2>
+
+            <div className="auth-coins">
+              <CoinStack />
+              <span className="auth-coins-amount">
+                <CoinIcon size={20} />
+                15
+              </span>
+            </div>
 
             <div className="auth-options">
               <button
@@ -246,10 +283,12 @@ export function SignInDialog({ onClose }: { onClose: () => void }) {
                 onClick={GOOGLE_CLIENT_ID ? startGoogle : comingSoon('Google')}
                 disabled={busy || (Boolean(GOOGLE_CLIENT_ID) && !googleReady)}
               >
+                {lastMethod === 'google' && <LastUsedBadge />}
                 <GoogleMark />
                 Continue with Google
               </button>
               <button type="button" className="auth-option" onClick={() => go('email', 'email')}>
+                {lastMethod === 'email' && <LastUsedBadge />}
                 <Mail size={22} strokeWidth={1.8} />
                 Continue with Email
               </button>
@@ -258,6 +297,7 @@ export function SignInDialog({ onClose }: { onClose: () => void }) {
                 className="auth-option"
                 onClick={() => go('phone', channels.sms ? 'sms' : 'whatsapp')}
               >
+                {lastMethod === 'phone' && <LastUsedBadge />}
                 <Smartphone size={22} strokeWidth={1.8} />
                 Continue with Phone
               </button>
@@ -394,6 +434,39 @@ export function SignInDialog({ onClose }: { onClose: () => void }) {
         )}
       </div>
     </div>
+  )
+}
+
+function LastUsedBadge() {
+  return (
+    <span className="auth-badge">
+      <Clock size={12} strokeWidth={2.6} />
+      Last Used
+    </span>
+  )
+}
+
+/** A little pile of gold coins, echoing the free-coins reward. */
+function CoinStack() {
+  const stacks = [
+    { cx: 31, base: 52, count: 5 },
+    { cx: 55, base: 52, count: 4 },
+  ]
+  return (
+    <svg className="auth-coins-pile" width="86" height="66" viewBox="0 0 86 66" aria-hidden="true">
+      {stacks.map((stack, si) =>
+        Array.from({ length: stack.count }).map((_, i) => {
+          const cy = stack.base - i * 6
+          return (
+            <g key={`${si}-${i}`}>
+              <ellipse cx={stack.cx} cy={cy + 3} rx="15" ry="5" fill="#c98a00" />
+              <ellipse cx={stack.cx} cy={cy} rx="15" ry="5" fill="#ffc928" />
+              <ellipse cx={stack.cx} cy={cy - 1} rx="9" ry="2.6" fill="#ffe27a" />
+            </g>
+          )
+        }),
+      )}
+    </svg>
   )
 }
 
