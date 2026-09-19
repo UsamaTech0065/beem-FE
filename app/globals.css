@@ -382,7 +382,7 @@
 .follow-list { max-width: 640px; margin: 0 auto; padding: 0; list-style: none; }
 .follow-row { display: flex; align-items: center; gap: 14px; padding: 10px 0; }
 .follow-row-user { display: flex; min-width: 0; flex: 1; align-items: center; gap: 14px; color: var(--foreground); }
-.follow-row-user .ua { flex: 0 0 auto; background: var(--secondary); }
+.follow-row-user .ua { width: 48px; height: 48px; flex: 0 0 auto; background: var(--secondary); }
 .follow-row-user strong { overflow: hidden; font-size: 17px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
 .follow-btn { flex: 0 0 auto; height: 40px; padding: 0 22px; border: 1px solid var(--primary); border-radius: 999px; background: var(--primary); color: #fff; font-size: 15px; font-weight: 700; transition: background .15s, color .15s, filter .15s; }
 .follow-btn:hover { filter: brightness(1.05); }

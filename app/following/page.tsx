@@ -1,9 +1,9 @@
 import { Users } from 'lucide-react'
 import { ActionRail } from '@/components/beem/action-rail'
-import { FollowingSection, StreamGrid } from '@/components/beem/following-section'
+import { StreamGrid } from '@/components/beem/following-section'
 import { TopNav } from '@/components/beem/top-nav'
 import { MobileBottomNav } from '@/components/beem/mobile-bottom-nav'
-import { getCurrentUser, getFollowingStreams, getLiveFollowed, getLiveStreams } from '@/lib/api'
+import { getCurrentUser, getFollowingStreams, getLiveStreams } from '@/lib/api'
 import { getAccessToken } from '@/lib/session'
 
 export const dynamic = 'force-dynamic'
@@ -11,9 +11,8 @@ export const dynamic = 'force-dynamic'
 export default async function FollowingPage() {
   const accessToken = await getAccessToken()
 
-  const [user, followed, streams, discover] = await Promise.all([
+  const [user, streams, discover] = await Promise.all([
     getCurrentUser(accessToken),
-    getLiveFollowed(accessToken),
     getFollowingStreams(accessToken),
     getLiveStreams({ limit: 48 }),
   ])
@@ -28,10 +27,7 @@ export default async function FollowingPage() {
       <TopNav user={user} />
       <main className="tg-main tg-main-feed">
         {streams.items.length > 0 ? (
-          <>
-            <FollowingSection entries={followed} />
-            <StreamGrid streams={streams.items} />
-          </>
+          <StreamGrid streams={streams.items} />
         ) : (
           <div className="follow-empty">
             <Users size={56} strokeWidth={1.5} />
