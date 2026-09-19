@@ -5,6 +5,8 @@
  */
 
 export type AccountIcon =
+  | 'following'
+  | 'followers'
   | 'vault'
   | 'stats'
   | 'fans'
@@ -28,6 +30,13 @@ export type AccountItem = {
 export type AccountSection = { title: string; items: AccountItem[] }
 
 export const accountSections: AccountSection[] = [
+  {
+    title: 'Connections',
+    items: [
+      { label: 'Following', href: '/my-following', icon: 'following' },
+      { label: 'Followers', href: '/my-followers', icon: 'followers' },
+    ],
+  },
   {
     title: 'Creator Tools',
     items: [

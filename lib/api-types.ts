@@ -148,6 +148,11 @@ export type Fan = PublicUser & {
   followsBack: boolean
 }
 
+/** Someone the signed-in user follows. */
+export type Following = PublicUser & {
+  followedAt: string
+}
+
 /** A public post on the home page, with who wrote it. */
 export type FeedPost = ProfilePost & { author: PublicUser }
 

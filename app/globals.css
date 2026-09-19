@@ -108,7 +108,9 @@
 .tg-menu-toggle { display: none; width: 44px; height: 44px; place-items: center; border-radius: 50%; }
 
 /* ---- page body ---- */
-.tg-main { width: min(100% - 32px, var(--grid-w)); margin: 0 auto; padding-bottom: 96px; }
+/* Reserve a gutter for the fixed action rail on both sides so the rail (Go live,
+   Get more coins) never sits on top of the right-hand column. */
+.tg-main { width: min(calc(100% - 2 * var(--rail-w)), var(--grid-w)); margin: 0 auto; padding-bottom: 96px; }
 .tg-main-feed { padding-top: 0; }
 .tg-home-feed { padding-top: 20px; }
 .tg-tabs-row { display: flex; align-items: center; gap: 16px; height: 68px; margin-bottom: 4px; padding-left: 18px; }
@@ -370,6 +372,25 @@
   .mobile-bottom-item.active { color: var(--primary); font-weight: 700; }
   .mobile-bottom-icon { display: grid; place-items: center; height: 28px; }
 }
+
+/* ---- follow lists (Following / Followers), Tango-style ---- */
+.follow-page { padding-top: 8px; }
+.follow-head { position: relative; display: flex; align-items: center; justify-content: center; height: 56px; margin-bottom: 10px; }
+.follow-head h1 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -.03em; }
+.follow-back { position: absolute; left: 0; display: grid; width: 40px; height: 40px; place-items: center; border-radius: 50%; color: var(--foreground); }
+.follow-back:hover { background: var(--secondary); }
+.follow-list { max-width: 640px; margin: 0 auto; padding: 0; list-style: none; }
+.follow-row { display: flex; align-items: center; gap: 14px; padding: 10px 0; }
+.follow-row-user { display: flex; min-width: 0; flex: 1; align-items: center; gap: 14px; color: var(--foreground); }
+.follow-row-user .ua { flex: 0 0 auto; background: var(--secondary); }
+.follow-row-user strong { overflow: hidden; font-size: 17px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.follow-btn { flex: 0 0 auto; height: 40px; padding: 0 22px; border: 1px solid var(--primary); border-radius: 999px; background: var(--primary); color: #fff; font-size: 15px; font-weight: 700; transition: background .15s, color .15s, filter .15s; }
+.follow-btn:hover { filter: brightness(1.05); }
+.follow-btn.is-following { background: var(--background); border-color: var(--border); color: var(--foreground); }
+.follow-btn.is-following:hover { background: var(--secondary); filter: none; }
+.follow-btn:disabled { opacity: .6; }
+.follow-blank { display: grid; justify-items: center; gap: 12px; padding: 60px 0; color: var(--muted-foreground); }
+.follow-blank p { margin: 0; font-size: 16px; }
 
 /* ---- following: empty state and suggestions ---- */
 .follow-empty {

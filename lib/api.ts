@@ -5,6 +5,7 @@ import type {
   EditableProfile,
   Fan,
   FeedPost,
+  Following,
   LiveFollowedEntry,
   NewMember,
   Page,
@@ -185,4 +186,9 @@ export function getCreatorStats(accessToken: string | null) {
 export function getFans(accessToken: string | null) {
   if (!accessToken) return Promise.resolve<Fan[]>([])
   return safe(apiFetch<Fan[]>('/follows/fans', { accessToken }), [], 'fans')
+}
+
+export function getFollowing(accessToken: string | null) {
+  if (!accessToken) return Promise.resolve<Following[]>([])
+  return safe(apiFetch<Following[]>('/follows/following', { accessToken }), [], 'following')
 }
