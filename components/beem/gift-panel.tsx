@@ -1,38 +1,36 @@
 'use client'
 
+import Link from 'next/link'
 import { Plus, X } from 'lucide-react'
 import { compactNumber } from './account-nav'
 import { CoinIcon } from './icons'
 
-/**
- * The catalogue is static until the coin ledger exists. Prices mirror the
- * reference so the layout is real; sending is what is still to come.
- */
-export type GiftItem = { name: string; emoji: string; coins: number; free?: boolean }
+/** Ids and prices mirror the server catalogue (beem-backend gift-catalog.ts). */
+export type GiftItem = { id: string; name: string; emoji: string; coins: number }
 
 export const GIFTS: GiftItem[] = [
-  { name: 'Heart', emoji: '❤️', coins: 8, free: true },
-  { name: 'Ice cream', emoji: '🍦', coins: 39 },
-  { name: 'Strawberry', emoji: '🍓', coins: 59 },
-  { name: 'Kiss', emoji: '💋', coins: 79 },
-  { name: 'Rose', emoji: '🌹', coins: 99 },
-  { name: 'Ring', emoji: '💍', coins: 79 },
-  { name: 'Hearts', emoji: '💕', coins: 199 },
-  { name: 'Champagne', emoji: '🍾', coins: 299 },
-  { name: 'Teddy', emoji: '🧸', coins: 99 },
-  { name: 'Crown', emoji: '👑', coins: 399 },
-  { name: 'Sports car', emoji: '🏎️', coins: 799 },
-  { name: 'Rocket', emoji: '🚀', coins: 999 },
-  { name: 'Diamond', emoji: '💎', coins: 1_499 },
-  { name: 'Castle', emoji: '🏰', coins: 2_999 },
-  { name: 'Yacht', emoji: '🛥️', coins: 5_999 },
-  { name: 'Unicorn', emoji: '🦄', coins: 229 },
+  { id: 'heart', name: 'Heart', emoji: '❤️', coins: 8 },
+  { id: 'ice-cream', name: 'Ice cream', emoji: '🍦', coins: 39 },
+  { id: 'strawberry', name: 'Strawberry', emoji: '🍓', coins: 59 },
+  { id: 'kiss', name: 'Kiss', emoji: '💋', coins: 79 },
+  { id: 'ring', name: 'Ring', emoji: '💍', coins: 79 },
+  { id: 'rose', name: 'Rose', emoji: '🌹', coins: 99 },
+  { id: 'teddy', name: 'Teddy', emoji: '🧸', coins: 99 },
+  { id: 'hearts', name: 'Hearts', emoji: '💕', coins: 199 },
+  { id: 'unicorn', name: 'Unicorn', emoji: '🦄', coins: 229 },
+  { id: 'champagne', name: 'Champagne', emoji: '🍾', coins: 299 },
+  { id: 'crown', name: 'Crown', emoji: '👑', coins: 399 },
+  { id: 'sports-car', name: 'Sports car', emoji: '🏎️', coins: 799 },
+  { id: 'rocket', name: 'Rocket', emoji: '🚀', coins: 999 },
+  { id: 'diamond', name: 'Diamond', emoji: '💎', coins: 1_499 },
+  { id: 'castle', name: 'Castle', emoji: '🏰', coins: 2_999 },
+  { id: 'yacht', name: 'Yacht', emoji: '🛥️', coins: 5_999 },
 ]
 
 type Props = {
   balance: number
   onClose: () => void
-  onPick: (gift: { name: string; coins: number }) => void
+  onPick: (gift: GiftItem) => void
 }
 
 export function GiftPanel({ balance, onClose, onPick }: Props) {
@@ -44,9 +42,9 @@ export function GiftPanel({ balance, onClose, onPick }: Props) {
         </button>
         <span className="gifts-balance">
           <CoinIcon /> {compactNumber(balance)}
-          <button type="button" className="gifts-add" aria-label="Add coins" disabled title="Coins are coming soon">
+          <Link href="/wallet" className="gifts-add" aria-label="Add coins">
             <Plus size={14} />
-          </button>
+          </Link>
         </span>
         <button type="button" className="live-round live-round--sm" onClick={onClose} aria-label="Close gifts">
           <X size={18} />
@@ -58,12 +56,11 @@ export function GiftPanel({ balance, onClose, onPick }: Props) {
         {GIFTS.map((gift) => (
           <button
             type="button"
-            key={gift.name}
+            key={gift.id}
             className="gift"
             onClick={() => onPick(gift)}
             aria-label={`${gift.name}, ${gift.coins} coins`}
           >
-            {gift.free && <span className="gift-free">Free</span>}
             <span className="gift-emoji" aria-hidden="true">
               {gift.emoji}
             </span>

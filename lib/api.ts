@@ -3,9 +3,11 @@ import type {
   CreatorStats,
   CurrentUser,
   EditableProfile,
+  CoinPack,
   Fan,
   FeedPost,
   Following,
+  Wallet,
   LiveFollowedEntry,
   NewMember,
   Page,
@@ -191,4 +193,16 @@ export function getFans(accessToken: string | null) {
 export function getFollowing(accessToken: string | null) {
   if (!accessToken) return Promise.resolve<Following[]>([])
   return safe(apiFetch<Following[]>('/follows/following', { accessToken }), [], 'following')
+}
+
+const EMPTY_WALLET: Wallet = { coins: 0, transactions: [] }
+
+export function getWallet(accessToken: string | null) {
+  if (!accessToken) return Promise.resolve<Wallet>(EMPTY_WALLET)
+  return safe(apiFetch<Wallet>('/wallet', { accessToken }), EMPTY_WALLET, 'wallet')
+}
+
+export function getCoinPacks(accessToken: string | null) {
+  if (!accessToken) return Promise.resolve<CoinPack[]>([])
+  return safe(apiFetch<CoinPack[]>('/wallet/packs', { accessToken }), [], 'coin packs')
 }

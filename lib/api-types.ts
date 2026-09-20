@@ -34,8 +34,37 @@ export type CurrentUser = PublicUser & {
   followingCount: number
   /** Decimal string; diamond totals are 64-bit on the server. */
   diamondsTotal: string
+  /** Spendable coin balance. */
+  coins: number
   /** The stream this user is hosting right now, if any. */
   liveStream: { id: string; title: string; viewerCount: number; startedAt: string } | null
+}
+
+export type WalletTxnType = 'WELCOME_BONUS' | 'PURCHASE' | 'GIFT_SENT' | 'ADJUSTMENT'
+
+export type WalletTransaction = {
+  id: string
+  /** Positive credits, negative debits. */
+  amount: number
+  type: WalletTxnType
+  memo: string | null
+  createdAt: string
+}
+
+export type Wallet = {
+  coins: number
+  transactions: WalletTransaction[]
+}
+
+export type CoinPack = {
+  id: string
+  coins: number
+  bonus: number
+  amountCents: number
+  currency: string
+  tag?: string
+  /** coins + bonus, what the wallet is credited on success. */
+  total: number
 }
 
 /** A stream opened on its own page: the card plus what the viewer's relation to the host is. */

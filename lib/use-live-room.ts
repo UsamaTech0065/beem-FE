@@ -32,6 +32,9 @@ export type ChatMessage = {
 /** The celebration shown over the picture when someone follows. `id` changes per burst so it can replay. */
 export type FollowBurst = { id: string; name: string }
 
+/** A gift flying over the picture. `id` changes per gift so the animation replays. */
+export type GiftBurst = { id: string; giftId: string; emoji: string; giftName: string; senderName: string; coins: number }
+
 export type LiveRoom = {
   phase: LivePhase
   error: string | null
@@ -53,6 +56,7 @@ export type LiveRoom = {
   messages: ChatMessage[]
   /** The most recent follow to celebrate, for everyone in the room. */
   followBurst: FollowBurst | null
+  giftBurst: GiftBurst | null
   /**
    * The host's picture and sound, as tracks rather than elements, so the same
    * stream can show in the room page and in the mini player without reconnecting.
@@ -68,6 +72,8 @@ export type LiveRoom = {
   sendChat: (text: string) => Promise<void>
   /** Tells the room this viewer just followed the host. Call it after the follow is saved. */
   announceFollow: () => Promise<void>
+  /** Broadcasts a gift to everyone in the room (called after the spend is saved). */
+  announceGift: (gift: GiftBurst) => Promise<void>
   /** Leaves the room without ending the stream. */
   leave: () => void
 }
@@ -80,6 +86,7 @@ export type LiveRoomOptions = {
 }
 
 const CHAT_TOPIC = 'chat'
+const GIFT_TOPIC = 'gift'
 /** Room-wide moments that are not chat lines, such as a follow. */
 const EVENT_TOPIC = 'event'
 const CHAT_HISTORY = 60
@@ -108,6 +115,8 @@ export function useLiveRoom(streamId: string | null, sender: ChatSender | null, 
   const [facingUser, setFacingUser] = useState(true)
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [followBurst, setFollowBurst] = useState<FollowBurst | null>(null)
+  const [giftBurst, setGiftBurst] = useState<GiftBurst | null>(null)
+  const giftTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [videoTrack, setVideoTrack] = useState<Track | null>(null)
   const [audioTrack, setAudioTrack] = useState<Track | null>(null)
 
@@ -145,6 +154,28 @@ export function useLiveRoom(streamId: string | null, sender: ChatSender | null, 
     )
   }, [])
 
+  /** Plays a gift over the picture and drops a line into chat. */
+  const showGift = useCallback((gift: GiftBurst) => {
+    setGiftBurst(gift)
+    if (giftTimerRef.current) clearTimeout(giftTimerRef.current)
+    giftTimerRef.current = setTimeout(() => setGiftBurst(null), 4_000)
+    setMessages((list) =>
+      [
+        ...list,
+        {
+          id: `gift:${gift.id}`,
+          identity: gift.id,
+          name: gift.senderName,
+          avatarUrl: null,
+          text: `sent ${gift.giftName} ${gift.emoji}`,
+          at: Date.now(),
+          fromHost: false,
+          kind: 'chat' as const,
+        },
+      ].slice(-CHAT_HISTORY),
+    )
+  }, [])
+
   useEffect(() => {
     if (!streamId) {
       setPhase('idle')
@@ -163,7 +194,9 @@ export function useLiveRoom(streamId: string | null, sender: ChatSender | null, 
     setPeakViewers(0)
     setMessages([])
     setFollowBurst(null)
+    setGiftBurst(null)
     if (burstTimerRef.current) clearTimeout(burstTimerRef.current)
+    if (giftTimerRef.current) clearTimeout(giftTimerRef.current)
     celebratedRef.current = new Set()
     setVideoTrack(null)
     setAudioTrack(null)
@@ -267,6 +300,9 @@ export function useLiveRoom(streamId: string | null, sender: ChatSender | null, 
             // A host cannot follow themselves, so an event from the host is ignored.
             const event = parseFollowEvent(decoder.decode(payload))
             if (event) celebrate(participant.identity, event.name, event.avatarUrl)
+          } else if (topic === GIFT_TOPIC) {
+            const gift = parseGiftEvent(decoder.decode(payload))
+            if (gift) showGift(gift)
           }
         })
         .on(RoomEvent.Disconnected, (reason) => {
@@ -322,6 +358,7 @@ export function useLiveRoom(streamId: string | null, sender: ChatSender | null, 
       cancelled = true
       roomRef.current = null
       if (burstTimerRef.current) clearTimeout(burstTimerRef.current)
+      if (giftTimerRef.current) clearTimeout(giftTimerRef.current)
       void room?.disconnect()
     }
   }, [streamId, studio, celebrate])
@@ -396,6 +433,17 @@ export function useLiveRoom(streamId: string | null, sender: ChatSender | null, 
     })
   }, [celebrate])
 
+  const announceGift = useCallback(
+    async (gift: GiftBurst) => {
+      const room = roomRef.current
+      if (!room) return
+      // Not echoed back to the sender, so play it locally as well.
+      showGift(gift)
+      await room.localParticipant.publishData(encode({ type: 'gift', ...gift }), { reliable: true, topic: GIFT_TOPIC })
+    },
+    [showGift],
+  )
+
   const leave = useCallback(() => {
     void roomRef.current?.disconnect()
   }, [])
@@ -414,6 +462,7 @@ export function useLiveRoom(streamId: string | null, sender: ChatSender | null, 
     facingUser,
     messages,
     followBurst,
+    giftBurst,
     videoTrack,
     audioTrack,
     toggleMic,
@@ -423,6 +472,7 @@ export function useLiveRoom(streamId: string | null, sender: ChatSender | null, 
     toggleMuted,
     sendChat,
     announceFollow,
+    announceGift,
     leave,
   }
 }
@@ -443,6 +493,29 @@ function parseFollowEvent(raw: string): { name: string; avatarUrl: string | null
     return {
       name: typeof data.name === 'string' && data.name.trim() ? data.name.trim().slice(0, 48) : 'Someone',
       avatarUrl: typeof data.avatarUrl === 'string' && data.avatarUrl.startsWith('http') ? data.avatarUrl : null,
+    }
+  } catch {
+    return null
+  }
+}
+
+/** A gift from another browser: keep only the display fields, bounded. */
+function parseGiftEvent(raw: string): GiftBurst | null {
+  try {
+    const data = JSON.parse(raw) as Record<string, unknown>
+    if (data.type !== 'gift') return null
+    const str = (value: unknown, max: number, fallback = '') =>
+      typeof value === 'string' && value.trim() ? value.trim().slice(0, max) : fallback
+    const emoji = str(data.emoji, 8)
+    const giftName = str(data.giftName, 32, 'a gift')
+    if (!emoji) return null
+    return {
+      id: str(data.id, 64) || `gift_${Date.now()}`,
+      giftId: str(data.giftId, 64),
+      emoji,
+      giftName,
+      senderName: str(data.senderName, 48, 'Someone'),
+      coins: typeof data.coins === 'number' && Number.isFinite(data.coins) ? Math.max(0, Math.trunc(data.coins)) : 0,
     }
   } catch {
     return null

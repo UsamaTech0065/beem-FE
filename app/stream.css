@@ -259,6 +259,25 @@
 @keyframes follow-burst-out {
   to { opacity: 0; transform: translateY(-40px) scale(.9); }
 }
+
+/* Gift: the emoji rises and fades, with a name pill under it. */
+.gift-burst { position: absolute; right: 0; bottom: 26%; left: 0; z-index: 4; display: flex; flex-direction: column; align-items: center; gap: 10px; pointer-events: none; }
+.gift-burst-emoji { font-size: 96px; line-height: 1; filter: drop-shadow(0 12px 30px rgba(0,0,0,.45)); animation: gift-rise 3.4s ease-out both; }
+.gift-burst-label { border-radius: 999px; background: rgba(0,0,0,.55); padding: 6px 16px; color: #fff; font-size: 15px; font-weight: 700; backdrop-filter: blur(8px); animation: gift-label 3.4s ease-out both; }
+.gift-burst-label strong { color: #ffd94a; font-weight: 800; }
+@keyframes gift-rise {
+  0% { opacity: 0; transform: translateY(40px) scale(.4); }
+  15% { opacity: 1; transform: translateY(0) scale(1.15); }
+  30% { transform: translateY(0) scale(1); }
+  80% { opacity: 1; transform: translateY(-40px) scale(1); }
+  100% { opacity: 0; transform: translateY(-120px) scale(.9); }
+}
+@keyframes gift-label {
+  0%, 8% { opacity: 0; transform: translateY(8px); }
+  18%, 80% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; }
+}
+
 .lc-line.is-follow strong { color: #fff; }
 .lc-line.is-follow em { font-style: normal; font-weight: 800; }
 .lc-follow-tag { display: inline-grid; place-items: center; border-radius: 50% 50% 46% 46%; background: linear-gradient(180deg, #ff5aa5, #ff2d87); padding: 3px 8px; color: #fff; font-size: 10px; font-weight: 800; vertical-align: 1px; }
@@ -323,6 +342,7 @@
    ========================================================================= */
 @media (prefers-reduced-motion: reduce) {
   .follow-burst, .follow-burst-heart, .follow-burst-name { animation: none; }
+  .gift-burst-emoji, .gift-burst-label { animation: none; }
   .stream-card-link .stream-image { transition: none; }
   .tg-live-dot, .live-dot { animation: none; }
 }

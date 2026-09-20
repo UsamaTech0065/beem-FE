@@ -26,7 +26,8 @@ import {
 import { formatDiamonds, type CurrentUser, type RtmpIngress, type StreamDetail } from '@/lib/api-types'
 import { ObsGuide } from './broadcast-studio'
 import { FollowBurst } from './follow-burst'
-import { GIFTS, GiftPanel } from './gift-panel'
+import { GIFTS, GiftPanel, type GiftItem } from './gift-panel'
+import { GiftBurstView } from './gift-burst'
 import { LiveChat } from './live-chat'
 import { LiveEnded } from './live-ended'
 import { useLiveSession } from './live-session'
@@ -63,6 +64,8 @@ export function StreamRoom({ stream, user, studio }: Props) {
   const [shared, setShared] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const [ingress, setIngress] = useState<RtmpIngress | null>(null)
+  const [coins, setCoins] = useState(user?.coins ?? 0)
+  const [giftBusy, setGiftBusy] = useState(false)
 
   // Join (or re-attach to) the room. Runs again if the visitor signs in, so chat carries their name.
   useEffect(() => {
@@ -137,9 +140,39 @@ export function StreamRoom({ stream, user, studio }: Props) {
     router.refresh()
   }
 
-  function pickGift(gift: { name: string; coins: number }) {
+  async function pickGift(gift: GiftItem) {
     if (!user) return setSignInOpen(true)
-    setToast(`${gift.name} needs ${gift.coins} coins. Coins and gifting arrive in the next update.`)
+    if (isHost) return setToast('You cannot send gifts to your own stream.')
+    if (giftBusy) return
+    if (coins < gift.coins) {
+      setToast(`Not enough coins for ${gift.name}. Tap the coin balance to top up.`)
+      return
+    }
+
+    setGiftBusy(true)
+    const response = await fetch(`/api/streams/${encodeURIComponent(stream.id)}/gift`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ giftId: gift.id }),
+    }).catch(() => null)
+    setGiftBusy(false)
+
+    if (!response?.ok) {
+      const body = await response?.json().catch(() => ({ message: 'Could not send the gift.' }))
+      setToast(body?.message ?? 'Could not send the gift.')
+      return
+    }
+
+    const data = (await response.json()) as { coins: number }
+    setCoins(data.coins)
+    void room.announceGift({
+      id: `${user.id}:${Date.now()}`,
+      giftId: gift.id,
+      emoji: gift.emoji,
+      giftName: gift.name,
+      senderName: user.displayName,
+      coins: gift.coins,
+    })
   }
 
   const showPoster = stream.thumbnailUrl && phase !== 'live'
@@ -227,6 +260,7 @@ export function StreamRoom({ stream, user, studio }: Props) {
         </div>
 
         <FollowBurst burst={attached ? room.followBurst : null} />
+        <GiftBurstView burst={attached ? room.giftBurst : null} />
 
         {room.audioBlocked && phase === 'live' && (
           <button type="button" className="live-unmute" onClick={room.unblockAudio}>
@@ -354,7 +388,7 @@ export function StreamRoom({ stream, user, studio }: Props) {
       {!isHost && !over && (
         <>
           {giftsOpen ? (
-            <GiftPanel balance={0} onClose={() => setGiftsOpen(false)} onPick={pickGift} />
+            <GiftPanel balance={coins} onClose={() => setGiftsOpen(false)} onPick={pickGift} />
           ) : (
             // The quick-gift rail: one tap to send the common gifts, with the
             // full catalogue a tap away at the bottom.

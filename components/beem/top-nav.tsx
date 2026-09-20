@@ -86,14 +86,12 @@ export function TopNav({ user }: { user: CurrentUser | null }) {
         </nav>
 
         <div className="tg-actions">
-          <div className="tg-balance">
+          <Link className="tg-balance" href="/wallet" aria-label="Your coin balance">
             <span>My balance</span>
             <CoinIcon />
-            <strong>0</strong>
-            <button type="button" aria-label="Add coins" className="tg-balance-add">
-              +
-            </button>
-          </div>
+            <strong>{(user?.coins ?? 0).toLocaleString()}</strong>
+            <span className="tg-balance-add" aria-hidden="true">+</span>
+          </Link>
 
           <Link className="tg-icon-button" href="/leaders/lastday" aria-label="Leaderboard">
             <Network size={26} strokeWidth={1.8} />
