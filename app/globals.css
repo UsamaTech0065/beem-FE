@@ -430,7 +430,12 @@
 .coins-tile-price { margin: 10px -6px 0; width: calc(100% + 12px); background: #fff2cf; padding: 9px 0; color: #6b5310; font-size: 14px; font-weight: 800; text-align: center; }
 .coins-checkout-item { display: flex; align-items: center; justify-content: space-between; margin: 14px 0 18px; border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px; }
 .coins-checkout-price { font-size: 20px; font-weight: 800; }
-.coins-card-mount { min-height: 80px; margin-bottom: 16px; }
+.card-form { margin-bottom: 4px; }
+.card-label { display: block; margin: 0 0 6px; font-size: 13px; font-weight: 700; color: var(--muted-foreground); }
+.stripe-field { margin-bottom: 12px; border: 1px solid var(--border); border-radius: 12px; padding: 13px 14px; background: #fff; transition: border-color .15s; }
+.stripe-field.StripeElement--focus { border-color: var(--primary); }
+.stripe-field.StripeElement--invalid { border-color: #e24b4a; }
+.card-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .coins-mock-note { display: inline-flex; align-items: center; gap: 6px; margin: 8px 0 20px; color: var(--muted-foreground); font-size: 13px; }
 .coins-pay { display: grid; place-items: center; width: 100%; height: 52px; border-radius: 999px; background: var(--primary); color: #fff; font-size: 17px; font-weight: 800; }
 .coins-pay:disabled { opacity: .6; }

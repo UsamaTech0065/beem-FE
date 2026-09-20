@@ -12,8 +12,8 @@ type Step = 'packs' | 'pay' | 'done'
 
 /**
  * The buy-coins drawer, sliding in from the right (Tango-style). Picks a pack,
- * then pays: instantly in mock mode, or with an embedded Stripe card form
- * (which also offers the browser's saved wallets) when a key is configured.
+ * then pays: instantly in mock mode, or with clean Stripe card fields (number /
+ * expiry / CVC only — no Link, no account signup) when a key is configured.
  */
 export function BuyCoins({ open, onClose, signedIn }: { open: boolean; onClose: () => void; signedIn: boolean }) {
   const router = useRouter()
@@ -21,12 +21,16 @@ export function BuyCoins({ open, onClose, signedIn }: { open: boolean; onClose: 
   const [packs, setPacks] = useState<CoinPack[] | null>(null)
   const [selected, setSelected] = useState<CoinPack | null>(null)
   const [busy, setBusy] = useState(false)
+  const [cardReady, setCardReady] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const stripeRef = useRef<StripeLike | null>(null)
-  const elementsRef = useRef<StripeElements | null>(null)
-  const mountRef = useRef<HTMLDivElement | null>(null)
 
-  // Load the catalogue the first time the drawer opens for a signed-in person.
+  const stripeRef = useRef<StripeLike | null>(null)
+  const cardRef = useRef<StripeElement | null>(null)
+  const clientSecretRef = useRef<string | null>(null)
+  const numberElRef = useRef<HTMLDivElement | null>(null)
+  const expiryElRef = useRef<HTMLDivElement | null>(null)
+  const cvcElRef = useRef<HTMLDivElement | null>(null)
+
   useEffect(() => {
     if (!open || !signedIn || packs) return
     fetch('/api/wallet/packs')
@@ -35,44 +39,55 @@ export function BuyCoins({ open, onClose, signedIn }: { open: boolean; onClose: 
       .catch(() => setPacks([]))
   }, [open, signedIn, packs])
 
-  // Reset to the pack list whenever the drawer is closed.
   useEffect(() => {
     if (open) return
     setStep('packs')
     setSelected(null)
     setError(null)
     setBusy(false)
+    setCardReady(false)
   }, [open])
 
   useEffect(() => {
     if (!open) return
-    const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose()
-    }
+    const onKey = (event: KeyboardEvent) => event.key === 'Escape' && onClose()
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [open, onClose])
 
-  // In Stripe mode, mount the Payment Element when the pay step is shown.
+  // Stripe mode: mount the split card fields and fetch the client secret.
   useEffect(() => {
     if (step !== 'pay' || !STRIPE_PK || !selected) return
     let cancelled = false
     ;(async () => {
       setError(null)
+      setCardReady(false)
       const stripe = await loadStripe(STRIPE_PK as string)
       if (!stripe || cancelled) return setError('Could not load the payment form.')
       stripeRef.current = stripe
+
       const response = await fetch('/api/wallet/payment-intent', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ packId: selected.id }),
       }).catch(() => null)
       if (!response?.ok || cancelled) return setError('Could not start the payment.')
-      const { clientSecret } = (await response.json()) as { clientSecret: string }
-      if (cancelled || !mountRef.current) return
-      const elements = stripe.elements({ clientSecret, appearance: { theme: 'stripe' } })
-      elements.create('payment').mount(mountRef.current)
-      elementsRef.current = elements
+      clientSecretRef.current = ((await response.json()) as { clientSecret: string }).clientSecret
+
+      const style = {
+        base: { fontSize: '16px', color: '#17171c', '::placeholder': { color: '#a3a3ab' } },
+        invalid: { color: '#e24b4a' },
+      }
+      const elements = stripe.elements()
+      const number = elements.create('cardNumber', { style, showIcon: true })
+      const expiry = elements.create('cardExpiry', { style })
+      const cvc = elements.create('cardCvc', { style })
+      if (cancelled) return
+      if (numberElRef.current) number.mount(numberElRef.current)
+      if (expiryElRef.current) expiry.mount(expiryElRef.current)
+      if (cvcElRef.current) cvc.mount(cvcElRef.current)
+      cardRef.current = number
+      setCardReady(true)
     })()
     return () => {
       cancelled = true
@@ -87,7 +102,6 @@ export function BuyCoins({ open, onClose, signedIn }: { open: boolean; onClose: 
     setError(null)
 
     if (!STRIPE_PK) {
-      // Mock: credit instantly, no card.
       const response = await fetch('/api/wallet/checkout', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
@@ -104,20 +118,21 @@ export function BuyCoins({ open, onClose, signedIn }: { open: boolean; onClose: 
     }
 
     const stripe = stripeRef.current
-    const elements = elementsRef.current
-    if (!stripe || !elements) {
+    const card = cardRef.current
+    const clientSecret = clientSecretRef.current
+    if (!stripe || !card || !clientSecret) {
       setBusy(false)
       return setError('Payment form is not ready yet.')
     }
-    const { error: payError } = await stripe.confirmPayment({
-      elements,
-      confirmParams: { return_url: `${window.location.origin}/wallet?purchase=success` },
-      redirect: 'if_required',
+    const { error: payError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+      payment_method: { card },
     })
     setBusy(false)
     if (payError) return setError(payError.message ?? 'Payment failed.')
-    setStep('done')
-    router.refresh()
+    if (paymentIntent?.status === 'succeeded' || paymentIntent?.status === 'processing') {
+      setStep('done')
+      router.refresh()
+    }
   }
 
   return (
@@ -127,7 +142,7 @@ export function BuyCoins({ open, onClose, signedIn }: { open: boolean; onClose: 
           <>
             <header className="coins-drawer-head">
               <span />
-              <button type="button" className="auth-close coins-drawer-x" onClick={onClose} aria-label="Close">
+              <button type="button" className="auth-close" onClick={onClose} aria-label="Close">
                 <X size={22} />
               </button>
             </header>
@@ -185,7 +200,25 @@ export function BuyCoins({ open, onClose, signedIn }: { open: boolean; onClose: 
             </div>
 
             {STRIPE_PK ? (
-              <div ref={mountRef} className="coins-card-mount" />
+              <div className="card-form">
+                <label className="card-label">Card number</label>
+                <div ref={numberElRef} className="stripe-field" />
+                <div className="card-row">
+                  <div>
+                    <label className="card-label">Expiry</label>
+                    <div ref={expiryElRef} className="stripe-field" />
+                  </div>
+                  <div>
+                    <label className="card-label">CVC</label>
+                    <div ref={cvcElRef} className="stripe-field" />
+                  </div>
+                </div>
+                {!cardReady && !error && (
+                  <div className="coins-drawer-loading">
+                    <Loader2 className="auth-spin" size={20} />
+                  </div>
+                )}
+              </div>
             ) : (
               <p className="coins-mock-note">
                 <Lock size={14} /> Test mode — no real card is charged.
@@ -194,7 +227,12 @@ export function BuyCoins({ open, onClose, signedIn }: { open: boolean; onClose: 
 
             {error && <p className="auth-error">{error}</p>}
 
-            <button type="button" className="coins-pay" onClick={pay} disabled={busy}>
+            <button
+              type="button"
+              className="coins-pay"
+              onClick={pay}
+              disabled={busy || (Boolean(STRIPE_PK) && !cardReady)}
+            >
               {busy ? <Loader2 className="auth-spin" size={18} /> : `Pay ${formatPrice(selected)}`}
             </button>
 
@@ -242,14 +280,14 @@ function formatPrice(pack: CoinPack): string {
 }
 
 // --- Stripe.js loaded on demand (no npm dependency) ---
-type StripeElements = { create(type: string): { mount(el: HTMLElement): void }; submit?(): Promise<unknown> }
+type StripeElement = { mount(el: HTMLElement): void }
+type StripeElementsApi = { create(type: string, options?: unknown): StripeElement }
 type StripeLike = {
-  elements(options: { clientSecret: string; appearance?: unknown }): StripeElements
-  confirmPayment(options: {
-    elements: StripeElements
-    confirmParams: { return_url: string }
-    redirect: 'if_required'
-  }): Promise<{ error?: { message?: string } }>
+  elements(options?: { clientSecret?: string; appearance?: unknown }): StripeElementsApi
+  confirmCardPayment(
+    clientSecret: string,
+    data: { payment_method: { card: StripeElement } },
+  ): Promise<{ error?: { message?: string }; paymentIntent?: { status?: string } }>
 }
 
 let scriptPromise: Promise<void> | null = null
