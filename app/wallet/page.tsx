@@ -4,8 +4,8 @@ import { ActionRail } from '@/components/beem/action-rail'
 import { TopNav } from '@/components/beem/top-nav'
 import { MobileBottomNav } from '@/components/beem/mobile-bottom-nav'
 import { CoinIcon } from '@/components/beem/icons'
-import { BuyCoins } from '@/components/beem/buy-coins'
-import { getCoinPacks, getCurrentUser, getWallet } from '@/lib/api'
+import { BuyCoinsButton } from '@/components/beem/buy-coins-button'
+import { getCurrentUser, getWallet } from '@/lib/api'
 import { getAccessToken } from '@/lib/session'
 import type { WalletTxnType } from '@/lib/api-types'
 
@@ -28,10 +28,9 @@ const TXN_LABEL: Record<WalletTxnType, string> = {
 
 export default async function WalletPage({ searchParams }: { searchParams: Promise<{ purchase?: string }> }) {
   const accessToken = await getAccessToken()
-  const [user, wallet, packs, { purchase }] = await Promise.all([
+  const [user, wallet, { purchase }] = await Promise.all([
     getCurrentUser(accessToken),
     getWallet(accessToken),
-    getCoinPacks(accessToken),
     searchParams,
   ])
 
@@ -54,7 +53,7 @@ export default async function WalletPage({ searchParams }: { searchParams: Promi
           <span className="wallet-balance">
             <CoinIcon size={30} /> {wallet.coins.toLocaleString()}
           </span>
-          <BuyCoins packs={packs} signedIn={Boolean(user)} />
+          <BuyCoinsButton signedIn={Boolean(user)} />
         </div>
 
         <h2 className="wallet-history-title">History</h2>

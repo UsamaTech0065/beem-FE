@@ -9,6 +9,7 @@ import { AccountMenu } from './account-menu'
 import { BrandMark } from './brand-mark'
 import { isNavActive, navigationItems } from './data'
 import { SignInDialog } from './sign-in-dialog'
+import { BuyCoins } from './buy-coins'
 import { CoinIcon, EyeFilled } from './icons'
 
 const iconMap = { 'thumbs-up': ThumbsUp, users: Users, search: Search, messages: MessageCircle, games: Gamepad2 }
@@ -19,6 +20,7 @@ export function TopNav({ user }: { user: CurrentUser | null }) {
   const [searchOpen, setSearchOpen] = useState(false)
   const [accountOpen, setAccountOpen] = useState(false)
   const [authOpen, setAuthOpen] = useState(false)
+  const [buyOpen, setBuyOpen] = useState(false)
   const [query, setQuery] = useState('')
 
   // Like Tango, greet a signed-out visitor with the sign-up dialog. Closing it
@@ -86,12 +88,21 @@ export function TopNav({ user }: { user: CurrentUser | null }) {
         </nav>
 
         <div className="tg-actions">
-          <Link className="tg-balance" href="/wallet" aria-label="Your coin balance">
-            <span>My balance</span>
-            <CoinIcon />
-            <strong>{(user?.coins ?? 0).toLocaleString()}</strong>
-            <span className="tg-balance-add" aria-hidden="true">+</span>
-          </Link>
+          <div className="tg-balance">
+            <Link className="tg-balance-link" href="/wallet" aria-label="Your coin balance">
+              <span>My balance</span>
+              <CoinIcon />
+              <strong>{(user?.coins ?? 0).toLocaleString()}</strong>
+            </Link>
+            <button
+              type="button"
+              className="tg-balance-add"
+              onClick={() => (user ? setBuyOpen(true) : setAuthOpen(true))}
+              aria-label="Add coins"
+            >
+              +
+            </button>
+          </div>
 
           <Link className="tg-icon-button" href="/leaders/lastday" aria-label="Leaderboard">
             <Network size={26} strokeWidth={1.8} />
@@ -168,6 +179,7 @@ export function TopNav({ user }: { user: CurrentUser | null }) {
       )}
 
       {authOpen && <SignInDialog onClose={closeAuth} />}
+      <BuyCoins open={buyOpen} onClose={() => setBuyOpen(false)} signedIn={Boolean(user)} />
     </header>
   )
 }
