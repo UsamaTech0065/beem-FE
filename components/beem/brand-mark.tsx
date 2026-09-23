@@ -3,8 +3,8 @@ import Link from 'next/link'
 export function BrandMark() {
   return (
     <Link href="/" className="brand" aria-label="beem home">
-      <img src="/beem-logo.svg" alt="" className="brand-icon" />
-      <span className="brand-word">beem</span>
+      {/* The wordmark carries the name, so there is no text next to it. */}
+      <img src="/beem-wordmark.svg" alt="beem" className="brand-logo" />
     </Link>
   )
 }
