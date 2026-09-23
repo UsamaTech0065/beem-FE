@@ -292,15 +292,18 @@ export function SignInDialog({ onClose }: { onClose: () => void }) {
                 <Mail size={22} strokeWidth={1.8} />
                 Continue with Email
               </button>
-              <button
-                type="button"
-                className="auth-option"
-                onClick={() => go('phone', channels.sms ? 'sms' : 'whatsapp')}
-              >
-                {lastMethod === 'phone' && <LastUsedBadge />}
-                <Smartphone size={22} strokeWidth={1.8} />
-                Continue with Phone
-              </button>
+              {/* No SMS provider configured: phone sign-in is not offered at all. */}
+              {(channels.sms || channels.whatsapp) && (
+                <button
+                  type="button"
+                  className="auth-option"
+                  onClick={() => go('phone', channels.sms ? 'sms' : 'whatsapp')}
+                >
+                  {lastMethod === 'phone' && <LastUsedBadge />}
+                  <Smartphone size={22} strokeWidth={1.8} />
+                  Continue with Phone
+                </button>
+              )}
             </div>
 
             <div className="auth-social">
