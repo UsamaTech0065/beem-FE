@@ -15,8 +15,19 @@ type Channels = Record<Channel, boolean>
 
 const CHANNEL_LABEL: Record<Channel, string> = { sms: 'SMS', whatsapp: 'WhatsApp', email: 'email' }
 
-/** Until the API answers, assume the channels every deployment has. */
+/** Used only if the API cannot be asked at all. */
 const DEFAULT_CHANNELS: Channels = { sms: true, whatsapp: false, email: true }
+/** The API's answer is kept for the session, so the dialog opens complete the next time. */
+const CHANNELS_CACHE_KEY = 'beem_otp_channels'
+
+function readCachedChannels(): Channels | null {
+  try {
+    const raw = sessionStorage.getItem(CHANNELS_CACHE_KEY)
+    return raw ? (JSON.parse(raw) as Channels) : null
+  } catch {
+    return null
+  }
+}
 
 /** Set to enable "Continue with Google"; must match the API's GOOGLE_CLIENT_ID. */
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
@@ -42,7 +53,10 @@ declare global {
 export function SignInDialog({ onClose }: { onClose: () => void }) {
   const router = useRouter()
   const [step, setStep] = useState<Step>('choose')
-  const [channels, setChannels] = useState<Channels>(DEFAULT_CHANNELS)
+  // Null until the API has said which channels exist. The options are not
+  // drawn from a guess, so a phone button never appears and then vanishes.
+  const [channels, setChannels] = useState<Channels | null>(readCachedChannels)
+  const available = channels ?? DEFAULT_CHANNELS
   const [channel, setChannel] = useState<Channel>('sms')
   const [identifier, setIdentifier] = useState('')
   const [code, setCode] = useState('')
@@ -152,11 +166,22 @@ export function SignInDialog({ onClose }: { onClose: () => void }) {
     let cancelled = false
     fetch(`${API_URL}/auth/otp/channels`)
       .then((response) => (response.ok ? (response.json() as Promise<Channels>) : null))
-      .then((available) => {
-        if (available && !cancelled) setChannels(available)
+      .then((answer) => {
+        if (cancelled) return
+        if (answer) {
+          setChannels(answer)
+          try {
+            sessionStorage.setItem(CHANNELS_CACHE_KEY, JSON.stringify(answer))
+          } catch {
+            // No storage: the next open asks again.
+          }
+        } else {
+          setChannels((current) => current ?? DEFAULT_CHANNELS)
+        }
       })
       .catch(() => {
-        // Keep the defaults; the request step reports a missing channel anyway.
+        // API unreachable: fall back to the usual set; the request step reports the rest.
+        if (!cancelled) setChannels((current) => current ?? DEFAULT_CHANNELS)
       })
     return () => {
       cancelled = true
@@ -292,12 +317,14 @@ export function SignInDialog({ onClose }: { onClose: () => void }) {
                 <Mail size={22} strokeWidth={1.8} />
                 Continue with Email
               </button>
+              {/* Still asking the API: hold the slot so the layout does not jump. */}
+              {channels === null && <span className="auth-option auth-option--pending" aria-busy="true" aria-label="Loading sign-in options" />}
               {/* No SMS provider configured: phone sign-in is not offered at all. */}
-              {(channels.sms || channels.whatsapp) && (
+              {channels !== null && (channels.sms || channels.whatsapp) && (
                 <button
                   type="button"
                   className="auth-option"
-                  onClick={() => go('phone', channels.sms ? 'sms' : 'whatsapp')}
+                  onClick={() => go('phone', available.sms ? 'sms' : 'whatsapp')}
                 >
                   {lastMethod === 'phone' && <LastUsedBadge />}
                   <Smartphone size={22} strokeWidth={1.8} />
@@ -368,7 +395,7 @@ export function SignInDialog({ onClose }: { onClose: () => void }) {
               autoFocus
               required
             />
-            {channels.sms && channels.whatsapp && (
+            {available.sms && available.whatsapp && (
               <div className="auth-segment" role="radiogroup" aria-label="Send the code by">
                 <button
                   type="button"

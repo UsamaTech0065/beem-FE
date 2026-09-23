@@ -298,6 +298,8 @@
 }
 .auth-option:hover { background: var(--secondary); border-color: #c9c9d1; }
 .auth-option--dark { background: #17171c; border-color: #17171c; color: #fff; }
+.auth-option--pending { border-color: transparent; background: linear-gradient(90deg, var(--secondary) 25%, #ececf0 50%, var(--secondary) 75%); background-size: 200% 100%; animation: auth-pending 1.2s linear infinite; }
+@keyframes auth-pending { to { background-position: -200% 0; } }
 .auth-option--dark:hover { background: #17171c; border-color: #17171c; filter: brightness(1.25); }
 .auth-social { display: flex; justify-content: center; gap: 14px; }
 .auth-social-btn {
