@@ -22,6 +22,8 @@ import { EmojiPicker } from './emoji-picker'
 import { GIFTS } from './gift-panel'
 import { UserAvatar } from './user-avatar'
 import { CoinIcon } from './icons'
+import { TranslateMenu } from './translate-menu'
+import { useTranslator } from '@/lib/translation'
 
 /** How often an open thread asks for newer messages. */
 const THREAD_POLL_MS = 3_000
@@ -49,8 +51,15 @@ export function ChatThread({ me, conversation, onBack, onChanged }: Props) {
   const scroller = useRef<HTMLDivElement | null>(null)
   const draftInput = useRef<HTMLInputElement | null>(null)
   const newestRef = useRef<string | null>(null)
+  const translator = useTranslator()
 
   const conversationId = conversation?.id ?? null
+
+  // Ask for translations of what the other person wrote, as messages arrive.
+  useEffect(() => {
+    if (!translator.on) return
+    translator.request(messages.filter((message) => message.senderId !== me.id && message.kind === 'TEXT').map((message) => message.text))
+  }, [messages, me.id, translator])
 
   const fetchMessages = useCallback(
     async (after: string | null) => {
@@ -199,6 +208,7 @@ export function ChatThread({ me, conversation, onBack, onChanged }: Props) {
         >
           <Star size={20} fill={favorite ? 'currentColor' : 'none'} strokeWidth={2} />
         </button>
+        <TranslateMenu translator={translator} tone="light" buttonClassName="thread-star thread-translate" />
         <button type="button" className="thread-more" aria-label="Conversation options" disabled title="Coming soon">
           <MoreHorizontal size={22} />
         </button>
@@ -227,9 +237,15 @@ export function ChatThread({ me, conversation, onBack, onChanged }: Props) {
                 </div>
               )
             }
+            const translation = mine ? undefined : translator.lookup(message.text)
             return (
               <div key={message.id} className={`msg ${mine ? 'msg--mine' : 'msg--theirs'}`}>
                 <p>{message.text}</p>
+                {translation?.translated && (
+                  <p className="msg-translation" lang={translator.lang}>
+                    {translation.text}
+                  </p>
+                )}
                 <time dateTime={message.createdAt}>
                   {new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </time>

@@ -4,7 +4,9 @@ import { useEffect, useRef, useState } from 'react'
 import { SendHorizontal, Smile } from 'lucide-react'
 import type { ChatMessage } from '@/lib/use-live-room'
 import { EmojiPicker } from './emoji-picker'
+import { TranslateMenu } from './translate-menu'
 import { UserAvatar } from './user-avatar'
+import { useTranslator } from '@/lib/translation'
 
 type Props = {
   messages: ChatMessage[]
@@ -21,6 +23,13 @@ export function LiveChat({ messages, me, onSend, onSignIn, disabled = false }: P
   const [emojiOpen, setEmojiOpen] = useState(false)
   const list = useRef<HTMLOListElement | null>(null)
   const input = useRef<HTMLInputElement | null>(null)
+  const translator = useTranslator()
+
+  // Translate what other people write, as it comes in.
+  useEffect(() => {
+    if (!translator.on) return
+    translator.request(messages.filter((message) => message.kind === 'chat' && message.name !== me?.name).map((message) => message.text))
+  }, [messages, me?.name, translator])
 
   // Follow new messages unless the reader has scrolled up to read older ones.
   useEffect(() => {
@@ -60,6 +69,14 @@ export function LiveChat({ messages, me, onSend, onSignIn, disabled = false }: P
               <UserAvatar src={message.avatarUrl} name={message.name} size={26} />
               <span>
                 <strong>{message.name}</strong> {message.text}
+                {(() => {
+                  const translation = message.name === me?.name ? undefined : translator.lookup(message.text)
+                  return translation?.translated ? (
+                    <em className="lc-translation" lang={translator.lang}>
+                      {translation.text}
+                    </em>
+                  ) : null
+                })()}
               </span>
             </li>
           ),
@@ -78,6 +95,7 @@ export function LiveChat({ messages, me, onSend, onSignIn, disabled = false }: P
             maxLength={200}
             disabled={disabled}
           />
+          <TranslateMenu translator={translator} tone="dark" buttonClassName="lc-icon" iconSize={20} />
           <button
             type="button"
             className={`lc-icon${emojiOpen ? ' is-on' : ''}`}

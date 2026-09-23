@@ -201,6 +201,13 @@
 .lc-icon.is-on { background: rgba(255,255,255,.22); color: #fff; }
 .lc-box { position: relative; }
 .lc-send { background: var(--primary); color: #fff; }
+.lc-translation { display: block; margin-top: 2px; color: rgba(255,255,255,.75); font-size: 13px; font-style: normal; }
+.lc-translation::before { content: '\2192 '; }
+/* translation menu, dark tone (room): opens upward, above the chat box */
+.lc-box .tr-pop { top: auto; bottom: calc(100% + 10px); right: auto; left: 0; }
+.tr-pop--dark { background: rgba(23,23,28,.96); color: #fff; backdrop-filter: blur(12px); }
+.tr-pop--dark .tr-lang select { border-color: rgba(255,255,255,.2); background: rgba(255,255,255,.08); color: #fff; }
+.tr-pop--dark .tr-lang select option { color: #111; }
 
 /* ---- gifts ---- */
 .gifts { position: absolute; top: 80px; right: 18px; bottom: 18px; z-index: 6; display: grid; grid-template-rows: auto auto minmax(0, 1fr); width: 320px; gap: 12px; border-radius: 18px; background: rgba(23,23,28,.94); padding: 16px; backdrop-filter: blur(14px); }
