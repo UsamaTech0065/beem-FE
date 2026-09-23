@@ -185,7 +185,14 @@ export type Following = PublicUser & {
 /** A public post on the home page, with who wrote it. */
 export type FeedPost = ProfilePost & { author: PublicUser }
 
-export type SearchPerson = PublicUser & { followerCount: number; liveStreamId: string | null }
+export type SearchPerson = PublicUser & {
+  followerCount: number
+  /** Diamonds earned across their streams, as a decimal string. */
+  diamondsTotal: string
+  liveStreamId: string | null
+  /** Null when nobody is signed in, or for your own row. */
+  isFollowing: boolean | null
+}
 export type SearchResults = { query: string; people: SearchPerson[]; streams: StreamCard[] }
 
 /** A member shown in the "New on beem" row. */
