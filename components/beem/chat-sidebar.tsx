@@ -1,11 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Hand, Heart, Inbox, Plus, Search, SquarePen, Video } from 'lucide-react'
-import type { ChatPeer, CurrentUser, DmConversation, Fan } from '@/lib/api-types'
+import type { ChatPeer, CurrentUser, DmConversation, Fan, SearchResults } from '@/lib/api-types'
 import { ChatRow } from './chat-row'
 import { WELCOME_CHAT_ID } from './chat-workspace'
 import { UserAvatar } from './user-avatar'
+
+const SEARCH_DEBOUNCE_MS = 220
 
 const FILTERS = ['All', 'Unread', 'New Followers', 'Favorites'] as const
 type Filter = (typeof FILTERS)[number]
@@ -36,6 +38,23 @@ export function ChatSidebar({ me, conversations, suggested, fans, loaded, select
   const [query, setQuery] = useState('')
 
   const needle = query.trim().toLowerCase()
+  const [found, setFound] = useState<SearchResults | null>(null)
+
+  // Beyond the conversations already here, the box finds anyone on beem, so a
+  // chat can be started from it. Stale replies are dropped.
+  useEffect(() => {
+    if (!needle) return setFound(null)
+    let current = true
+    const timer = setTimeout(async () => {
+      const response = await fetch(`/api/search?q=${encodeURIComponent(needle)}`).catch(() => null)
+      if (!current || !response?.ok) return
+      setFound((await response.json()) as SearchResults)
+    }, SEARCH_DEBOUNCE_MS)
+    return () => {
+      current = false
+      clearTimeout(timer)
+    }
+  }, [needle])
   const visible = conversations.filter((chat) => {
     if (filter === 'Unread' && chat.unreadCount === 0) return false
     if (filter === 'Favorites' && !chat.favorite) return false
@@ -59,6 +78,13 @@ export function ChatSidebar({ me, conversations, suggested, fans, loaded, select
             (!needle || fan.displayName.toLowerCase().includes(needle) || fan.handle.includes(needle)),
         )
       : []
+
+  // People matching the search that are not in the list yet.
+  const newPeople =
+    needle && found && found.query.toLowerCase() === needle
+      ? found.people.filter((person) => person.id !== me.id && !talkingTo.has(person.id))
+      : []
+  const searching = Boolean(needle) && (!found || found.query.toLowerCase() !== needle)
 
   return (
     <aside className="chat-sidebar">
@@ -151,6 +177,38 @@ export function ChatSidebar({ me, conversations, suggested, fans, loaded, select
 
         {loaded && filter !== 'All' && visible.length === 0 && silentNewFollowers.length === 0 && (
           <p className="chat-list-empty">{EMPTY_TEXT[filter]}</p>
+        )}
+
+        {needle && filter === 'All' && newPeople.length > 0 && (
+          <section className="chat-suggested" aria-label="People on beem">
+            <h3>People on beem</h3>
+            {newPeople.map((person) => (
+              <div key={person.id} className="chat-suggest">
+                <button type="button" className="chat-suggest-main" onClick={() => onOpenWith(person, false)}>
+                  <span className={`chat-avatar-wrap${person.liveStreamId ? ' is-live' : ''}`}>
+                    <UserAvatar className="chat-avatar" src={person.avatarUrl} name={person.displayName} size={64} />
+                  </span>
+                  <span className="chat-row-copy">
+                    <strong>{person.displayName}</strong>
+                    <span>@{person.handle}</span>
+                  </span>
+                </button>
+                {person.liveStreamId ? (
+                  <a className="chat-suggest-action chat-suggest-action--live" href={`/stream/${person.liveStreamId}`}>
+                    <Video size={15} strokeWidth={2.2} /> Watch live
+                  </a>
+                ) : (
+                  <button type="button" className="chat-suggest-action" onClick={() => onOpenWith(person, true)}>
+                    <Hand size={15} strokeWidth={2.2} /> Say hi
+                  </button>
+                )}
+              </div>
+            ))}
+          </section>
+        )}
+
+        {needle && filter === 'All' && !showWelcome && visible.length === 0 && newPeople.length === 0 && (
+          <p className="chat-list-empty">{searching ? 'Searching…' : `Nobody found for “${query.trim()}”.`}</p>
         )}
 
         {suggested.length > 0 && filter === 'All' && !needle && (
