@@ -1,8 +1,6 @@
 import { ChevronRight } from 'lucide-react'
 import type { LiveFollowedEntry, StreamCard as StreamCardData } from '@/lib/api-types'
-import { promos } from './data'
 import { StoryCard } from './story-card'
-import { PromoBanner } from './promo-banner'
 import { StreamCard } from './stream-card'
 
 /**
@@ -30,17 +28,6 @@ export function FollowingSection({ entries }: { entries: LiveFollowedEntry[] }) 
         ))}
       </div>
     </section>
-  )
-}
-
-/** Static marketing slots. These have no API behind them yet. */
-export function PromoBanners() {
-  return (
-    <div className="promo-grid" aria-label="Featured games">
-      {promos.map((promo) => (
-        <PromoBanner key={promo.title} promo={promo} />
-      ))}
-    </div>
   )
 }
 

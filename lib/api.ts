@@ -16,7 +16,6 @@ import type {
   StreamCard,
   StreamDetail,
 } from './api-types'
-import { demoCategories, demoLivePage } from './demo-data'
 
 /**
  * Server-side calls prefer API_URL (which can be an internal address in a
@@ -79,12 +78,8 @@ async function readError(response: Response): Promise<string> {
 /**
  * Feeds degrade rather than throw. A request that fails, because the API is
  * down, unreachable, or misconfigured, must not turn into an error screen when
- * one panel's request fails.
- *
- * The public discovery feeds fall back to bundled demo content so the site
- * still looks alive. Personalised feeds fall back to empty: inventing who a
- * viewer follows would be wrong. The fallback only applies when the request
- * fails; an API that answers with nothing is shown as nothing.
+ * one panel's request fails. Every feed falls back to empty: the site shows
+ * only what the API says is there, never invented content.
  */
 async function safe<T>(promise: Promise<T>, fallback: T | (() => T), what: string): Promise<T> {
   try {
@@ -112,11 +107,7 @@ export function getLiveStreams(options: { category?: string; limit?: number } = 
   if (options.category) params.set('category', options.category)
   if (options.limit) params.set('limit', String(options.limit))
   const query = params.toString()
-  return safe(
-    apiFetch<Page<StreamCard>>(`/streams/live${query ? `?${query}` : ''}`),
-    () => demoLivePage(options),
-    'streams',
-  )
+  return safe(apiFetch<Page<StreamCard>>(`/streams/live${query ? `?${query}` : ''}`), EMPTY_PAGE, 'streams')
 }
 
 /** One stream, or null when it does not exist or the API is down. */
@@ -141,7 +132,7 @@ export function getLiveFollowed(accessToken: string | null) {
 export function getCategories() {
   // Uncached on purpose: the live page 404s on a slug it does not know, and a
   // stale list here would turn a newly added category into a wrong page.
-  return safe(apiFetch<Category[]>('/categories'), demoCategories, 'categories')
+  return safe(apiFetch<Category[]>('/categories'), [], 'categories')
 }
 
 export function getCurrentUser(accessToken: string | null) {

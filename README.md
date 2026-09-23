@@ -25,12 +25,10 @@ cd ../Beem-backend && npm run dev
 
 ## When the API is unreachable
 
-The public feeds (`/`, `/live/*`) and the category tabs fall back to bundled
-demo content from `lib/demo-data.ts`, which mirrors the API's seed. The site
-therefore looks alive on a deployment whose backend is down, asleep, or not
-yet configured. The fallback applies only when the request fails; an API that
-answers with an empty list is shown as empty. Personalised feeds never use it.
-One warning per endpoint is logged server-side so a dead API is visible.
+Every feed shows as empty rather than throwing, so one failing request never
+becomes an error screen. There is no bundled stand-in content: the site only
+ever shows what the API returns. One warning per endpoint is logged
+server-side so a dead API is visible.
 
 ## Sessions
 

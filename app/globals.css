@@ -159,7 +159,7 @@
 .rail-language { display: grid; width: 34px; height: 34px; place-items: center; border-radius: 50%; color: var(--muted-foreground); transition: background .15s, color .15s; }
 .rail-language:hover { background: var(--secondary); color: var(--foreground); }
 
-/* ---- home page extras: followed rail and promos ---- */
+/* ---- home page extras: followed rail ---- */
 .content-section { margin-bottom: 26px; }
 .section-heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
 .section-heading h1, .section-heading h2 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -.04em; }
@@ -196,14 +196,6 @@
 .story-card-top span { display: inline-flex; align-items: center; gap: 5px; }
 .story-avatar-wrap { position: absolute; bottom: 12px; left: 50%; z-index: 2; padding: 3px; transform: translateX(-50%); border-radius: 50%; background: white; }
 .story-avatar { width: 46px; height: 46px; border-radius: 50%; object-fit: cover; }
-.promo-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--grid-gap); margin-bottom: 22px; }
-.promo-banner { position: relative; display: flex; min-height: 118px; align-items: center; justify-content: space-between; overflow: hidden; border-radius: 14px; padding: 16px 26px; color: white; isolation: isolate; }
-.promo-purple { background: #37136f; }
-.promo-red { background: #b82316; }
-.promo-banner::before { position: absolute; inset: 0; z-index: -1; background-image: radial-gradient(circle at 15% 20%, rgba(255,217,74,.8) 0 5px, transparent 6px), radial-gradient(circle at 80% 80%, rgba(255,217,74,.45) 0 4px, transparent 5px); content: ''; }
-.promo-banner p { margin: 4px 0 0; font-size: 22px; font-weight: 500; line-height: 1.1; }
-.promo-banner button { z-index: 1; border-radius: 99px; background: var(--accent); padding: 12px 22px; color: var(--foreground); font-size: 15px; font-weight: 800; }
-.promo-brand { font-size: 24px; font-weight: 900; letter-spacing: -.06em; }
 
 /* ---- API-backed states ---- */
 .feed-empty { margin: 48px 0; color: var(--muted-foreground); font-size: 16px; text-align: center; }
@@ -357,9 +349,6 @@
   .people-ring .ua { width: 58px; height: 58px; }
   .postrail { grid-auto-columns: 150px; }
   .postrail-quote { padding: 14px 12px; font-size: 14px; -webkit-line-clamp: 8; }
-  .promo-grid { grid-template-columns: 1fr; }
-  .promo-banner { min-height: 100px; padding: 14px 18px; }
-  .promo-banner p { font-size: 18px; }
   /* The rail collapses to its one essential action: a floating Go live button
      above the bottom bar. Without it there is no way to start a stream on a phone. */
   .action-rail { right: 14px; bottom: calc(78px + env(safe-area-inset-bottom)); width: auto; gap: 0; padding: 0; background: transparent; }

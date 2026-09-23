@@ -1,22 +1,4 @@
-/**
- * What remains of the original fixtures.
- *
- * Streams, creators and categories now come from the API. Only these two are
- * genuinely static: promos are marketing slots with no backend behind them,
- * and the nav is app structure rather than data.
- */
-
-export type Promo = {
-  eyebrow: string
-  title: string
-  action: string
-  className: string
-}
-
-export const promos: Promo[] = [
-  { eyebrow: 'beem temptation', title: 'Huge guaranteed prize!', action: 'Play', className: 'promo-purple' },
-  { eyebrow: 'hot chilli bells', title: 'Guaranteed 3,000 coins', action: 'Get hot', className: 'promo-red' },
-]
+/** App structure, not content: the primary nav and which /live slugs are feeds. */
 
 export type NavItem = {
   label: string
