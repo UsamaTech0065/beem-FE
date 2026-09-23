@@ -185,6 +185,9 @@ export type Following = PublicUser & {
 /** A public post on the home page, with who wrote it. */
 export type FeedPost = ProfilePost & { author: PublicUser }
 
+export type SearchPerson = PublicUser & { followerCount: number; liveStreamId: string | null }
+export type SearchResults = { query: string; people: SearchPerson[]; streams: StreamCard[] }
+
 /** A member shown in the "New on beem" row. */
 export type NewMember = PublicUser & { liveStreamId: string | null }
 

@@ -10,18 +10,18 @@ import { BrandMark } from './brand-mark'
 import { isNavActive, navigationItems } from './data'
 import { SignInDialog } from './sign-in-dialog'
 import { BuyCoins } from './buy-coins'
+import { SearchBox } from './search-box'
 import { CoinIcon, EyeFilled } from './icons'
 
 const iconMap = { 'thumbs-up': ThumbsUp, users: Users, search: Search, messages: MessageCircle, games: Gamepad2 }
 
-export function TopNav({ user }: { user: CurrentUser | null }) {
+export function TopNav({ user, initialQuery }: { user: CurrentUser | null; initialQuery?: string }) {
   const pathname = usePathname()
   const router = useRouter()
   const [searchOpen, setSearchOpen] = useState(false)
   const [accountOpen, setAccountOpen] = useState(false)
   const [authOpen, setAuthOpen] = useState(false)
   const [buyOpen, setBuyOpen] = useState(false)
-  const [query, setQuery] = useState('')
 
   // Like Tango, greet a signed-out visitor with the sign-up dialog. Closing it
   // is remembered for the session, so it opens once rather than on every page.
@@ -59,15 +59,7 @@ export function TopNav({ user }: { user: CurrentUser | null }) {
       <div className="tg-header-inner">
         <BrandMark />
 
-        <label className="tg-search">
-          <Search size={18} strokeWidth={2.2} />
-          <input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search"
-            aria-label="Search"
-          />
-        </label>
+        <SearchBox className="tg-search" initialQuery={initialQuery} />
 
         <nav className="tg-nav" aria-label="Primary navigation">
           {navigationItems.map((item) => {
@@ -165,16 +157,7 @@ export function TopNav({ user }: { user: CurrentUser | null }) {
 
       {searchOpen && (
         <div className="mobile-search">
-          <label className="search-box">
-            <Search size={17} />
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search"
-              aria-label="Search"
-              autoFocus
-            />
-          </label>
+          <SearchBox className="search-box" initialQuery={initialQuery} iconSize={17} autoFocus />
         </div>
       )}
 

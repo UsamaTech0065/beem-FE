@@ -13,6 +13,7 @@ import type {
   Page,
   ProfilePage,
   ProfilePost,
+  SearchResults,
   StreamCard,
   StreamDetail,
 } from './api-types'
@@ -169,6 +170,11 @@ export function getLatestPosts(limit = 12) {
 
 export function getNewMembers() {
   return safe(apiFetch<NewMember[]>('/users/discover/new'), [], 'new members')
+}
+
+/** People and live streams matching the term. Null when the API cannot be reached. */
+export function search(query: string) {
+  return safe(apiFetch<SearchResults>(`/search?q=${encodeURIComponent(query)}`), null, 'search')
 }
 
 export function getCreatorStats(accessToken: string | null) {
