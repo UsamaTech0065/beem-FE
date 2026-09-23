@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ChatPeer, CurrentUser, DmConversation, Fan } from '@/lib/api-types'
+import { refreshUnreadChats } from '@/lib/unread-chats'
 import { ChatEmptyState } from './chat-empty-state'
 import { ChatSidebar } from './chat-sidebar'
 import { ChatThread } from './chat-thread'
@@ -37,6 +38,8 @@ export function ChatWorkspace({ user, initialChatId = null }: Props) {
     setConversations(list)
     setSuggested(people)
     setFans(followers)
+    // Opening a thread marks it read; the badges in the header should follow.
+    refreshUnreadChats()
     setLoaded(true)
   }, [])
 

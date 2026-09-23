@@ -11,6 +11,7 @@ import { isNavActive, navigationItems } from './data'
 import { SignInDialog } from './sign-in-dialog'
 import { BuyCoins } from './buy-coins'
 import { SearchBox } from './search-box'
+import { useUnreadChats } from '@/lib/unread-chats'
 import { CoinIcon, EyeFilled } from './icons'
 
 const iconMap = { 'thumbs-up': ThumbsUp, users: Users, search: Search, messages: MessageCircle, games: Gamepad2 }
@@ -22,6 +23,7 @@ export function TopNav({ user, initialQuery }: { user: CurrentUser | null; initi
   const [accountOpen, setAccountOpen] = useState(false)
   const [authOpen, setAuthOpen] = useState(false)
   const [buyOpen, setBuyOpen] = useState(false)
+  const unreadChats = useUnreadChats(Boolean(user))
 
   // Like Tango, greet a signed-out visitor with the sign-up dialog. Closing it
   // is remembered for the session, so it opens once rather than on every page.
@@ -72,7 +74,14 @@ export function TopNav({ user, initialQuery }: { user: CurrentUser | null; initi
                 aria-current={isActive ? 'page' : undefined}
                 className={`tg-nav-item ${isActive ? 'is-active' : ''}`}
               >
-                <Icon size={26} strokeWidth={isActive ? 2.4 : 1.8} />
+                <span className="tg-nav-icon">
+                  <Icon size={26} strokeWidth={isActive ? 2.4 : 1.8} />
+                  {item.icon === 'messages' && unreadChats > 0 && (
+                    <b className="nav-count" aria-label={`${unreadChats} unread`}>
+                      {unreadChats > 99 ? '99+' : unreadChats}
+                    </b>
+                  )}
+                </span>
                 <span>{item.label}</span>
               </Link>
             )

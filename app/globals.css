@@ -120,6 +120,8 @@
 .tg-nav { display: flex; align-items: flex-start; gap: 22px; margin: 0 auto; flex: 0 0 auto; }
 .tg-nav-item { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 54px; color: var(--foreground); font-size: 12px; font-weight: 500; line-height: 1; }
 .tg-nav-item.is-active { font-weight: 700; }
+.tg-nav-icon { position: relative; display: grid; place-items: center; }
+.nav-count { position: absolute; top: -6px; right: -10px; display: grid; min-width: 18px; height: 18px; place-items: center; border: 2px solid var(--background); border-radius: 999px; background: var(--primary); padding: 0 4px; color: #fff; font-size: 10px; font-weight: 800; line-height: 1; }
 .tg-actions { display: flex; align-items: center; gap: 10px; flex: 0 0 auto; }
 .tg-balance { display: flex; align-items: center; gap: 8px; height: 40px; border-radius: 999px; background: var(--secondary); padding: 0 6px 0 16px; font-size: 13px; white-space: nowrap; }
 .tg-balance strong { font-size: 15px; font-weight: 700; }
@@ -395,7 +397,8 @@
   .mobile-bottom-nav { position: fixed; right: 0; bottom: 0; left: 0; z-index: 40; display: grid; grid-template-columns: repeat(5, 1fr); height: 64px; border-top: 1px solid var(--border); background: rgba(255,255,255,.97); padding: 6px 8px 4px; backdrop-filter: blur(14px); }
   .mobile-bottom-item { display: flex; min-width: 0; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: #8a8a93; font-size: 11px; line-height: 16px; }
   .mobile-bottom-item.active { color: var(--primary); font-weight: 700; }
-  .mobile-bottom-icon { display: grid; place-items: center; height: 28px; }
+  .mobile-bottom-icon { position: relative; display: grid; place-items: center; height: 28px; }
+  .mobile-bottom-icon .nav-count { top: -2px; right: -12px; }
 }
 
 /* ---- follow lists (Following / Followers), Tango-style ---- */

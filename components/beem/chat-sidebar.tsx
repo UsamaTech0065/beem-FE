@@ -64,6 +64,7 @@ export function ChatSidebar({ me, conversations, suggested, fans, loaded, select
   })
   const showWelcome = filter === 'All' && (!needle || 'beem'.includes(needle))
 
+  const unreadTotal = conversations.filter((chat) => chat.unreadCount > 0).length
   // New followers who have written and not been read yet: the number on the tab.
   const newFollowerUnread = conversations.filter((chat) => chat.fromNewFollower && chat.unreadCount > 0).length
 
@@ -118,6 +119,11 @@ export function ChatSidebar({ me, conversations, suggested, fans, loaded, select
           >
             {name === 'Favorites' && <Heart size={15} fill="#e5484d" strokeWidth={0} />}
             {name}
+            {name === 'Unread' && unreadTotal > 0 && (
+              <b className="chat-filter-count" aria-label={`${unreadTotal} unread`}>
+                {unreadTotal}
+              </b>
+            )}
             {name === 'New Followers' && newFollowerUnread > 0 && (
               <b className="chat-filter-count" aria-label={`${newFollowerUnread} unread`}>
                 {newFollowerUnread}
