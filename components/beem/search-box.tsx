@@ -3,14 +3,12 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
-import { Search } from 'lucide-react'
+import { Search, X } from 'lucide-react'
 import type { SearchResults } from '@/lib/api-types'
-import { EyeFilled } from './icons'
 import { UserAvatar } from './user-avatar'
 
 const DEBOUNCE_MS = 220
-const QUICK_PEOPLE = 5
-const QUICK_STREAMS = 3
+const QUICK_PEOPLE = 10
 
 type Props = {
   /** Pre-filled on the results page, so the box shows what was searched. */
@@ -21,13 +19,15 @@ type Props = {
 }
 
 /**
- * The header search. Typing shows the first few people and live streams;
- * Enter (or "See all results") opens /search with everything.
+ * The header search. Typing lists the first people that match, like the
+ * reference; Enter (or "See all results") opens /search with people and
+ * live streams.
  */
 export function SearchBox({ initialQuery = '', className, iconSize = 18, autoFocus }: Props) {
   const router = useRouter()
   const listId = useId()
   const box = useRef<HTMLFormElement>(null)
+  const input = useRef<HTMLInputElement>(null)
   const [query, setQuery] = useState(initialQuery)
   const [results, setResults] = useState<SearchResults | null>(null)
   const [open, setOpen] = useState(false)
@@ -65,14 +65,20 @@ export function SearchBox({ initialQuery = '', className, iconSize = 18, autoFoc
     router.push(`/search?q=${encodeURIComponent(term)}`)
   }
 
+  function clear() {
+    setQuery('')
+    setResults(null)
+    input.current?.focus()
+  }
+
   const people = results?.people.slice(0, QUICK_PEOPLE) ?? []
-  const streams = results?.streams.slice(0, QUICK_STREAMS) ?? []
   const showList = open && term.length > 0 && results !== null && results.query === term
 
   return (
-    <form ref={box} className={`${className} search-form`} role="search" onSubmit={submit}>
+    <form ref={box} className={`${className} search-form${query ? ' has-text' : ''}`} role="search" onSubmit={submit}>
       <Search size={iconSize} strokeWidth={2.2} />
       <input
+        ref={input}
         value={query}
         onChange={(event) => {
           setQuery(event.target.value)
@@ -88,37 +94,27 @@ export function SearchBox({ initialQuery = '', className, iconSize = 18, autoFoc
         autoFocus={autoFocus}
         enterKeyHint="search"
       />
+      {query && (
+        <button type="button" className="search-clear" onClick={clear} aria-label="Clear search">
+          <X size={16} strokeWidth={2.2} />
+        </button>
+      )}
 
       {showList && (
         <div className="search-drop" id={listId}>
-          {people.length === 0 && streams.length === 0 ? (
+          {people.length === 0 ? (
             <p className="search-drop-empty">Nothing found for &ldquo;{term}&rdquo;</p>
           ) : (
             <>
               {people.map((person) => (
                 <Link key={person.id} href={`/${person.handle}`} className="search-hit" onClick={() => setOpen(false)}>
-                  <UserAvatar src={person.avatarUrl} name={person.displayName} size={36} />
-                  <span className="search-hit-copy">
-                    <strong>{person.displayName}</strong>
-                    <span>@{person.handle}</span>
-                  </span>
+                  <UserAvatar src={person.avatarUrl} name={person.displayName} size={34} />
+                  <span className="search-hit-name">{person.displayName}</span>
                   {person.liveStreamId && <b className="search-hit-live">LIVE</b>}
                 </Link>
               ))}
-              {streams.map((stream) => (
-                <Link key={stream.id} href={`/stream/${stream.id}`} className="search-hit" onClick={() => setOpen(false)}>
-                  <UserAvatar src={stream.host.avatarUrl} name={stream.host.displayName} size={36} />
-                  <span className="search-hit-copy">
-                    <strong>{stream.title}</strong>
-                    <span>{stream.host.displayName}</span>
-                  </span>
-                  <b className="search-hit-live">
-                    <EyeFilled size={11} /> {stream.viewerCount}
-                  </b>
-                </Link>
-              ))}
               <button type="submit" className="search-drop-all">
-                See all results for &ldquo;{term}&rdquo;
+                See all results
               </button>
             </>
           )}
