@@ -141,13 +141,34 @@ export type ChatPeer = PublicUser & {
   liveStreamId: string | null
 }
 
+export type CallStatus = 'RINGING' | 'ACTIVE' | 'ENDED' | 'MISSED'
+
+/** A private 1:1 video call inside a conversation. */
+export type Call = {
+  id: string
+  conversationId: string
+  callerId: string
+  calleeId: string
+  status: CallStatus
+  createdAt: string
+  answeredAt: string | null
+  endedAt: string | null
+  /** Talk time in seconds once it is over; null before that or if never answered. */
+  durationSeconds: number | null
+}
+
+/** What the browser needs to join a call's room. */
+export type CallConnection = { url: string; token: string; identity: string; peerIdentity: string }
+
 export type DmMessage = {
   id: string
   senderId: string
-  /** HI is the wave from "Say hi", drawn as a greeting rather than a bubble. */
-  kind: 'TEXT' | 'HI'
+  /** HI is the wave from "Say hi", drawn as a greeting rather than a bubble; CALL stands for a 1:1 call. */
+  kind: 'TEXT' | 'HI' | 'CALL'
   text: string
   createdAt: string
+  /** Present on CALL lines. */
+  call?: Call
 }
 
 export type DmConversation = {

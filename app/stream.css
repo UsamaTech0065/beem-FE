@@ -209,6 +209,30 @@
 .tr-pop--dark .tr-lang select { border-color: rgba(255,255,255,.2); background: rgba(255,255,255,.08); color: #fff; }
 .tr-pop--dark .tr-lang select option { color: #111; }
 
+/* ---- 1:1 call ---- */
+.call { position: fixed; inset: 0; overflow: hidden; background: #0d0d11; color: #fff; isolation: isolate; }
+.call-stage { position: absolute; inset: 0; display: grid; place-items: center; }
+.call-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.call-idle { display: grid; justify-items: center; gap: 10px; text-align: center; }
+.call-idle-avatar { width: 128px; height: 128px; }
+.call-idle strong { font-size: 22px; font-weight: 800; }
+.call-idle span { color: rgba(255,255,255,.7); font-size: 15px; }
+.call-self { position: absolute; top: 76px; right: 16px; z-index: 3; display: grid; width: 112px; aspect-ratio: 3 / 4; place-items: center; overflow: hidden; border-radius: 14px; background: #1f1f26; box-shadow: 0 8px 24px rgba(0,0,0,.4); }
+.call-self-video { width: 100%; height: 100%; object-fit: cover; }
+.call-self.is-mirrored .call-self-video { transform: scaleX(-1); }
+.call-top { position: absolute; top: 16px; left: 16px; z-index: 3; display: flex; align-items: center; gap: 10px; border-radius: 999px; background: rgba(0,0,0,.45); padding: 6px 14px 6px 6px; backdrop-filter: blur(10px); }
+.call-top .ua { width: 36px; height: 36px; }
+.call-top div { display: grid; }
+.call-top strong { font-size: 15px; font-weight: 800; }
+.call-top span { color: rgba(255,255,255,.75); font-size: 12px; font-variant-numeric: tabular-nums; }
+.call-controls { position: absolute; bottom: calc(28px + env(safe-area-inset-bottom)); left: 50%; z-index: 3; display: flex; gap: 16px; transform: translateX(-50%); }
+.call-hangup { background: var(--destructive); }
+.call-hangup:hover:not(:disabled) { background: #d12f2f; }
+.call-over { position: absolute; bottom: calc(40px + env(safe-area-inset-bottom)); left: 50%; z-index: 3; display: grid; justify-items: center; gap: 8px; transform: translateX(-50%); text-align: center; }
+.call-over strong { font-size: 18px; font-weight: 800; }
+.call-over span { color: rgba(255,255,255,.7); font-size: 14px; }
+.call-back { display: inline-flex; height: 44px; align-items: center; margin-top: 8px; border-radius: 999px; background: #fff; padding: 0 22px; color: #17171c; font-size: 15px; font-weight: 800; }
+
 /* ---- gifts ---- */
 .gifts { position: absolute; top: 80px; right: 18px; bottom: 18px; z-index: 6; display: grid; grid-template-rows: auto auto minmax(0, 1fr); width: 320px; gap: 12px; border-radius: 18px; background: rgba(23,23,28,.94); padding: 16px; backdrop-filter: blur(14px); }
 .gifts-top { display: flex; align-items: center; gap: 10px; }

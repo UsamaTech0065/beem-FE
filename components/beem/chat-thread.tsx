@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ChevronLeft,
@@ -10,6 +11,7 @@ import {
   Mic,
   MoreHorizontal,
   Package,
+  PhoneMissed,
   Plus,
   SendHorizontal,
   Smile,
@@ -39,6 +41,8 @@ type Props = {
 }
 
 export function ChatThread({ me, conversation, onBack, onChanged }: Props) {
+  const router = useRouter()
+  const [calling, setCalling] = useState(false)
   const [messages, setMessages] = useState<DmMessage[]>([])
   const [loaded, setLoaded] = useState(false)
   const [draft, setDraft] = useState('')
@@ -122,6 +126,20 @@ export function ChatThread({ me, conversation, onBack, onChanged }: Props) {
     setMessages((current) => [...current, message])
     setDraft('')
     onChanged?.()
+  }
+
+  /** Start a private 1:1 call and go to it. */
+  async function startCall() {
+    if (!conversationId || calling) return
+    setCalling(true)
+    const response = await fetch(`/api/chats/${conversationId}/calls`, { method: 'POST' }).catch(() => null)
+    if (!response?.ok) {
+      setCalling(false)
+      const body = (await response?.json().catch(() => null)) as { message?: string } | null
+      return setToast(body?.message ?? 'Could not start the call. Try again.')
+    }
+    const call = (await response.json()) as NonNullable<DmMessage['call']>
+    router.push(`/call/${encodeURIComponent(call.id)}`)
   }
 
   async function toggleFavorite() {
@@ -237,6 +255,9 @@ export function ChatThread({ me, conversation, onBack, onChanged }: Props) {
                 </div>
               )
             }
+            if (message.kind === 'CALL' && message.call) {
+              return <CallCard key={message.id} call={message.call} mine={mine} peerName={peer.displayName} />
+            }
             const translation = mine ? undefined : translator.lookup(message.text)
             return (
               <div key={message.id} className={`msg ${mine ? 'msg--mine' : 'msg--theirs'}`}>
@@ -261,6 +282,9 @@ export function ChatThread({ me, conversation, onBack, onChanged }: Props) {
             <Video size={18} strokeWidth={2.2} /> {peer.displayName} is live. Join
           </Link>
         )}
+        <button type="button" className="thread-call" onClick={startCall} disabled={calling}>
+          Let&apos;s go 1:1 <Video size={18} strokeWidth={2.2} />
+        </button>
 
         <div className="composer">
           <div className="dm-gift-strip">
@@ -390,4 +414,42 @@ export function ChatThread({ me, conversation, onBack, onChanged }: Props) {
       )}
     </section>
   )
+}
+
+type CallCardProps = { call: NonNullable<DmMessage['call']>; mine: boolean; peerName: string }
+
+/** A 1:1 call in the thread: an invite while it rings, a summary once it is over. */
+function CallCard({ call, mine, peerName }: CallCardProps) {
+  const live = call.status === 'RINGING' || call.status === 'ACTIVE'
+  const time = new Date(call.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+
+  if (live) {
+    return (
+      <Link href={`/call/${encodeURIComponent(call.id)}`} className={`call-card is-live ${mine ? 'call-card--mine' : 'call-card--theirs'}`}>
+        <strong>{peerName}</strong>
+        <span className="call-card-state">
+          <Video size={16} strokeWidth={2.2} />
+          {call.status === 'ACTIVE' ? 'Rejoin 1:1' : mine ? 'Calling... open' : 'is calling you. Join'}
+        </span>
+        <time dateTime={call.createdAt}>{time}</time>
+      </Link>
+    )
+  }
+
+  const missed = call.status === 'MISSED'
+  return (
+    <div className={`call-card ${mine ? 'call-card--mine' : 'call-card--theirs'}`}>
+      <strong>{peerName}</strong>
+      <span className="call-card-state">
+        {missed ? <PhoneMissed size={16} strokeWidth={2.2} /> : <Video size={16} strokeWidth={2.2} />}
+        {missed ? (mine ? 'No answer' : 'Missed 1:1') : `1:1 completed${call.durationSeconds ? ` \u00b7 ${formatDuration(call.durationSeconds)}` : ''}`}
+      </span>
+      <time dateTime={call.createdAt}>{time}</time>
+    </div>
+  )
+}
+
+function formatDuration(seconds: number): string {
+  const minutes = Math.floor(seconds / 60)
+  return `${minutes}:${(seconds % 60).toString().padStart(2, '0')}`
 }

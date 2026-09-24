@@ -254,5 +254,6 @@ function previewFor(chat: DmConversation, myId: string): string {
   if (!last) return 'Say hi to start the conversation'
   const mine = last.senderId === myId
   if (last.kind === 'HI') return mine ? 'You said hi 👋' : 'Said hi 👋'
+  if (last.kind === 'CALL') return last.call?.status === 'RINGING' || last.call?.status === 'ACTIVE' ? '1:1 call' : '1:1 completed'
   return mine ? `You: ${last.text}` : last.text
 }

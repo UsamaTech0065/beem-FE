@@ -1,7 +1,9 @@
 import type {
+  Call,
   Category,
   CreatorStats,
   CurrentUser,
+  DmConversation,
   EditableProfile,
   CoinPack,
   Fan,
@@ -175,6 +177,18 @@ export function getNewMembers() {
 /** People and live streams matching the term. Null when the API cannot be reached. */
 export function search(query: string, accessToken: string | null = null) {
   return safe(apiFetch<SearchResults>(`/search?q=${encodeURIComponent(query)}`, { accessToken }), null, 'search')
+}
+
+/** A call, for one of its two parties; null otherwise. */
+export function getCall(id: string, accessToken: string | null) {
+  if (!accessToken) return Promise.resolve<Call | null>(null)
+  return safe(apiFetch<Call>(`/calls/${encodeURIComponent(id)}`, { accessToken }), null, 'call')
+}
+
+/** One conversation with its peer, for a member; null otherwise. */
+export function getChat(id: string, accessToken: string | null) {
+  if (!accessToken) return Promise.resolve<DmConversation | null>(null)
+  return safe(apiFetch<DmConversation>(`/chats/${encodeURIComponent(id)}`, { accessToken }), null, 'chat')
 }
 
 export function getCreatorStats(accessToken: string | null) {

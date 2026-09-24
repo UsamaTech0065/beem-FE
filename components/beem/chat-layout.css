@@ -114,6 +114,18 @@
 .msg--mine time { justify-self: end; }
 .msg-hi { display: grid; align-self: center; justify-items: center; gap: 4px; margin: 10px 0; color: var(--muted-foreground); font-size: 13px; font-weight: 600; }
 .msg-hi span { font-size: 44px; line-height: 1; }
+/* 1:1 call lines */
+.call-card { display: grid; justify-items: center; gap: 6px; width: 220px; max-width: 72%; border-radius: 18px; background: linear-gradient(180deg, #a9a9b2, #6f6f7a); padding: 22px 16px 10px; color: #fff; text-align: center; }
+.call-card--theirs { align-self: flex-start; }
+.call-card--mine { align-self: flex-end; }
+.call-card strong { font-size: 16px; font-weight: 700; }
+.call-card-state { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; background: rgba(255,255,255,.22); padding: 4px 12px; font-size: 13px; font-weight: 600; }
+.call-card time { justify-self: end; font-size: 11px; opacity: .8; }
+.call-card.is-live { background: linear-gradient(135deg, #ff3d6e, #f0149a); }
+.call-card.is-live:hover { filter: brightness(1.06); }
+.thread-call { display: inline-flex; align-items: center; gap: 8px; justify-self: end; margin-right: max(0px, calc((100% - 760px) / 2)); height: 40px; border-radius: 999px; background: linear-gradient(90deg, #ff3d6e, #f0149a); padding: 0 16px; color: #fff; font-size: 15px; font-weight: 800; transition: filter .15s; }
+.thread-call:hover:not(:disabled) { filter: brightness(1.07); }
+.thread-call:disabled { opacity: .6; }
 
 /* ---- composer ---- */
 .thread-foot { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; min-width: 0; padding: 0 20px 18px; }
@@ -186,6 +198,10 @@
 .packs-confirm p { margin: 0 0 160px; color: var(--muted-foreground); font-size: 16px; line-height: 1.5; }
 
 /* ---- responsive ---- */
+/* The floating Go-live rail sits over the thread's bottom-right corner on wide screens; keep the thread clear of it. */
+@media (min-width: 761px) {
+  .thread-scroll, .thread-foot { padding-right: calc(20px + var(--rail-w)); }
+}
 @media (max-width: 1100px) {
   .chat-workspace { grid-template-columns: 300px minmax(0, 1fr); }
   .composer { width: 100%; }
