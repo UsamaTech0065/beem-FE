@@ -1,9 +1,9 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useState, type FormEvent } from 'react'
-import { Gem, Loader2, Pencil, Plus, Video } from 'lucide-react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useEffect, useState, type FormEvent } from 'react'
+import { ExternalLink, Gem, Loader2, Pencil, Plus, Video } from 'lucide-react'
 import type { PayoutMethod, PayoutSummary } from '@/lib/api-types'
 
 const dollars = (cents: number) => `$${(cents / 100).toLocaleString('en-US', { minimumFractionDigits: cents % 100 ? 2 : 0, maximumFractionDigits: 2 })}`
@@ -11,9 +11,14 @@ const dateFormat = new Intl.DateTimeFormat('en', { day: 'numeric', month: 'short
 
 const STATUS_LABEL = { REQUESTED: 'Processing', PAID: 'Paid', REJECTED: 'Returned' } as const
 
+async function loadSummary(): Promise<PayoutSummary | null> {
+  return fetch('/api/payouts').then((r) => (r.ok ? (r.json() as Promise<PayoutSummary>) : null)).catch(() => null)
+}
+
 /** The Get Money page: progress to the minimum, the withdrawal method, and past payouts. */
 export function GetMoney({ initial }: { initial: PayoutSummary }) {
   const router = useRouter()
+  const params = useSearchParams()
   const [summary, setSummary] = useState(initial)
   const [methodOpen, setMethodOpen] = useState(false)
   const [withdrawing, setWithdrawing] = useState(false)
@@ -24,17 +29,48 @@ export function GetMoney({ initial }: { initial: PayoutSummary }) {
   const progress = Math.min(1, diamonds.available / diamonds.minimum)
   const missing = Math.max(0, diamonds.minimum - diamonds.available)
   const open = summary.payouts.find((payout) => payout.status === 'REQUESTED')
+  const stripePending = summary.method?.type === 'STRIPE' && summary.method.stripeReady === false
+  const canWithdraw = Boolean(summary.method) && !stripePending
+
+  // Back from Stripe's onboarding page: ask the API whether it was completed.
+  const stripeReturn = params.get('stripe')
+  useEffect(() => {
+    if (!stripeReturn) return
+    ;(async () => {
+      const response = await fetch('/api/payouts/stripe/sync', { method: 'POST' }).catch(() => null)
+      const method = response?.ok ? ((await response.json().catch(() => null)) as PayoutMethod | null) : null
+      if (method) {
+        setSummary((current) => ({ ...current, method }))
+        setToast(method.stripeReady ? 'Stripe is set up. You can withdraw to it now.' : 'Stripe still needs a few details. Open it again to finish.')
+      }
+      router.replace('/get-money')
+    })()
+  }, [stripeReturn, router])
+
+  useEffect(() => {
+    if (!toast) return
+    const timer = setTimeout(() => setToast(null), 4000)
+    return () => clearTimeout(timer)
+  }, [toast])
 
   async function withdraw() {
     setWithdrawing(true)
     const response = await fetch('/api/payouts', { method: 'POST' }).catch(() => null)
-    const body = (await response?.json().catch(() => null)) as { message?: string; amountCents?: number } | null
+    const body = (await response?.json().catch(() => null)) as { message?: string; amountCents?: number; status?: string; note?: string } | null
     setWithdrawing(false)
     if (!response?.ok) return setToast(body?.message ?? 'Could not request the withdrawal. Try again.')
-    setToast(`Withdrawal of ${dollars(body?.amountCents ?? 0)} requested.`)
-    router.refresh()
-    const fresh = await fetch('/api/payouts').then((r) => (r.ok ? (r.json() as Promise<PayoutSummary>) : null)).catch(() => null)
+    if (body?.status === 'PAID') setToast(`${dollars(body.amountCents ?? 0)} sent to Stripe. It reaches your bank on Stripe's schedule.`)
+    else if (body?.status === 'REJECTED') setToast(body.note ?? 'Stripe refused the transfer. Your diamonds are back in your balance.')
+    else setToast(`Withdrawal of ${dollars(body?.amountCents ?? 0)} requested.`)
+    const fresh = await loadSummary()
     if (fresh) setSummary(fresh)
+  }
+
+  async function openStripeDashboard() {
+    const response = await fetch('/api/payouts/stripe/dashboard').catch(() => null)
+    const body = (await response?.json().catch(() => null)) as { url?: string; message?: string } | null
+    if (body?.url) window.open(body.url, '_blank', 'noopener')
+    else setToast(body?.message ?? 'Could not open Stripe.')
   }
 
   return (
@@ -58,10 +94,11 @@ export function GetMoney({ initial }: { initial: PayoutSummary }) {
               <Gem size={13} strokeWidth={2.2} /> {diamonds.available.toLocaleString()} diamonds available
             </span>
             <b className="money-amount">{dollars(money.availableCents)}</b>
-            <button type="button" className="money-withdraw" onClick={withdraw} disabled={withdrawing || !summary.method}>
+            <button type="button" className="money-withdraw" onClick={withdraw} disabled={withdrawing || !canWithdraw}>
               {withdrawing ? <Loader2 size={18} className="auth-spin" /> : 'Withdraw'}
             </button>
             {!summary.method && <span className="money-sub">Add a withdrawal method below first.</span>}
+            {stripePending && <span className="money-sub">Finish setting up Stripe below first.</span>}
           </>
         ) : (
           <>
@@ -82,17 +119,24 @@ export function GetMoney({ initial }: { initial: PayoutSummary }) {
         )}
       </section>
 
-      <button type="button" className="money-method" onClick={() => setMethodOpen(true)}>
-        {summary.method ? (
-          <>
-            <Pencil size={16} strokeWidth={2.2} /> {summary.method.label}
-          </>
-        ) : (
-          <>
-            <Plus size={18} strokeWidth={2.2} /> Add withdrawal method
-          </>
+      <div className="money-method-row">
+        <button type="button" className="money-method" onClick={() => setMethodOpen(true)}>
+          {summary.method ? (
+            <>
+              <Pencil size={16} strokeWidth={2.2} /> {summary.method.label}
+            </>
+          ) : (
+            <>
+              <Plus size={18} strokeWidth={2.2} /> Add withdrawal method
+            </>
+          )}
+        </button>
+        {summary.method?.type === 'STRIPE' && summary.method.stripeReady && (
+          <button type="button" className="money-method" onClick={openStripeDashboard}>
+            <ExternalLink size={16} strokeWidth={2.2} /> Stripe dashboard
+          </button>
         )}
-      </button>
+      </div>
 
       <Link href="/go-live" className="money-golive">
         <Video size={20} strokeWidth={2} /> Go Live
@@ -141,22 +185,31 @@ export function GetMoney({ initial }: { initial: PayoutSummary }) {
       {methodOpen && (
         <MethodDialog
           current={summary.method}
+          stripeAvailable={summary.stripeAvailable}
           onClose={() => setMethodOpen(false)}
           onSaved={(method) => {
             setSummary((current) => ({ ...current, method }))
             setMethodOpen(false)
             setToast('Withdrawal method saved.')
           }}
+          onError={setToast}
         />
       )}
     </main>
   )
 }
 
-type DialogProps = { current: PayoutMethod | null; onClose: () => void; onSaved: (method: PayoutMethod) => void }
+type MethodType = 'PAYPAL' | 'BANK' | 'STRIPE'
+type DialogProps = {
+  current: PayoutMethod | null
+  stripeAvailable: boolean
+  onClose: () => void
+  onSaved: (method: PayoutMethod) => void
+  onError: (message: string) => void
+}
 
-function MethodDialog({ current, onClose, onSaved }: DialogProps) {
-  const [type, setType] = useState<'PAYPAL' | 'BANK'>(current?.type ?? 'PAYPAL')
+function MethodDialog({ current, stripeAvailable, onClose, onSaved, onError }: DialogProps) {
+  const [type, setType] = useState<MethodType>(current?.type ?? (stripeAvailable ? 'STRIPE' : 'PAYPAL'))
   const [paypalEmail, setPaypalEmail] = useState(current?.paypalEmail ?? '')
   const [accountName, setAccountName] = useState(current?.accountName ?? '')
   const [bankName, setBankName] = useState(current?.bankName ?? '')
@@ -166,12 +219,34 @@ function MethodDialog({ current, onClose, onSaved }: DialogProps) {
   const [error, setError] = useState<string | null>(null)
 
   const canSave =
-    !busy && (type === 'PAYPAL' ? paypalEmail.includes('@') : accountName.trim() && bankName.trim() && accountNumber.trim().length >= 6 && country.trim().length === 2)
+    !busy &&
+    (type === 'PAYPAL'
+      ? paypalEmail.includes('@')
+      : type === 'STRIPE'
+        ? country.trim().length === 2
+        : accountName.trim() && bankName.trim() && accountNumber.trim().length >= 6 && country.trim().length === 2)
 
   async function save(event: FormEvent) {
     event.preventDefault()
     setBusy(true)
     setError(null)
+
+    if (type === 'STRIPE') {
+      // Stripe collects the details itself on its hosted page; we only start it.
+      const response = await fetch('/api/payouts/stripe/onboard', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ country }),
+      }).catch(() => null)
+      const payload = (await response?.json().catch(() => null)) as { url?: string; message?: string } | null
+      if (!response?.ok || !payload?.url) {
+        setBusy(false)
+        return setError(payload?.message ?? 'Could not start Stripe setup. Try again.')
+      }
+      window.location.assign(payload.url)
+      return
+    }
+
     const body = type === 'PAYPAL' ? { type, paypalEmail } : { type, accountName, bankName, accountNumber, country }
     const response = await fetch('/api/payouts/method', {
       method: 'PUT',
@@ -180,7 +255,11 @@ function MethodDialog({ current, onClose, onSaved }: DialogProps) {
     }).catch(() => null)
     const payload = (await response?.json().catch(() => null)) as (PayoutMethod & { message?: string }) | null
     setBusy(false)
-    if (!response?.ok || !payload) return setError(payload?.message ?? 'Could not save. Try again.')
+    if (!response?.ok || !payload) {
+      const message = payload?.message ?? 'Could not save. Try again.'
+      setError(message)
+      return onError(message)
+    }
     onSaved(payload)
   }
 
@@ -190,6 +269,11 @@ function MethodDialog({ current, onClose, onSaved }: DialogProps) {
         <h2 id="method-title">Withdrawal method</h2>
 
         <div className="money-types" role="radiogroup" aria-label="Method">
+          {stripeAvailable && (
+            <button type="button" role="radio" aria-checked={type === 'STRIPE'} className={type === 'STRIPE' ? 'is-active' : ''} onClick={() => setType('STRIPE')}>
+              Stripe
+            </button>
+          )}
           <button type="button" role="radio" aria-checked={type === 'PAYPAL'} className={type === 'PAYPAL' ? 'is-active' : ''} onClick={() => setType('PAYPAL')}>
             PayPal
           </button>
@@ -198,7 +282,19 @@ function MethodDialog({ current, onClose, onSaved }: DialogProps) {
           </button>
         </div>
 
-        {type === 'PAYPAL' ? (
+        {type === 'STRIPE' ? (
+          <>
+            <p className="money-note">
+              {current?.type === 'STRIPE' && current.stripeReady
+                ? 'Your Stripe account is set up. Continue to update your details.'
+                : 'Stripe verifies your identity and bank details on its own secure page, then pays you directly. Takes about five minutes.'}
+            </p>
+            <label className="fp-field">
+              <span>Your country (2 letters)</span>
+              <input value={country} onChange={(event) => setCountry(event.target.value.toUpperCase().slice(0, 2))} placeholder="GB" autoFocus />
+            </label>
+          </>
+        ) : type === 'PAYPAL' ? (
           <label className="fp-field">
             <span>PayPal email</span>
             <input type="email" value={paypalEmail} onChange={(event) => setPaypalEmail(event.target.value)} placeholder="you@example.com" autoFocus />
@@ -230,7 +326,7 @@ function MethodDialog({ current, onClose, onSaved }: DialogProps) {
           </p>
         )}
         <button type="submit" className="fp-modal-set" disabled={!canSave}>
-          {busy ? <Loader2 size={18} className="auth-spin" /> : 'Save'}
+          {busy ? <Loader2 size={18} className="auth-spin" /> : type === 'STRIPE' ? 'Continue to Stripe' : 'Save'}
         </button>
         <button type="button" className="fp-modal-cancel" onClick={onClose}>
           Cancel

@@ -144,7 +144,7 @@ export type ChatPeer = PublicUser & {
 /** ---- creator payouts ---- */
 
 export type PayoutMethod = {
-  type: 'PAYPAL' | 'BANK'
+  type: 'PAYPAL' | 'BANK' | 'STRIPE'
   /** Shown in place of the details, e.g. "PayPal · a@b.com" or "Barclays · •••• 1234". */
   label: string
   paypalEmail: string | null
@@ -152,6 +152,8 @@ export type PayoutMethod = {
   bankName: string | null
   accountLast4: string | null
   country: string | null
+  /** Stripe only: onboarding complete and payouts enabled. Null for other methods. */
+  stripeReady: boolean | null
 }
 
 export type Payout = {
@@ -169,6 +171,8 @@ export type Payout = {
 export type PayoutSummary = {
   diamonds: { total: number; pending: number; available: number; withdrawn: number; minimum: number; requested: number }
   money: { currency: 'usd'; diamondsPerUsd: number; availableCents: number; minimumCents: number; holdDays: number }
+  /** Whether Stripe is offered as a withdrawal method on this deployment. */
+  stripeAvailable: boolean
   method: PayoutMethod | null
   payouts: Payout[]
 }
