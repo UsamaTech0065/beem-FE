@@ -12,6 +12,7 @@ import {
   Gem,
   GraduationCap,
   Handshake,
+  Banknote,
   LifeBuoy,
   Lock,
   LogOut,
@@ -27,6 +28,7 @@ import { accountSections, compactNumber, type AccountIcon } from './account-nav'
 const ICONS: Record<AccountIcon, typeof Lock> = {
   following: UserPlus,
   followers: Users,
+  money: Banknote,
   vault: Lock,
   stats: ChartColumn,
   fans: Users,

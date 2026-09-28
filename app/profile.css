@@ -153,6 +153,48 @@
 .fp-field ::placeholder { color: #a3a3ab; }
 .fp-field small { justify-self: end; color: #a3a3ab; font-size: 13px; }
 
+/* ---- Get Money ---- */
+.money { display: grid; justify-items: center; gap: 16px; }
+.money-title { margin: 0 0 8px; font-size: 32px; font-weight: 700; letter-spacing: -.02em; }
+.money-card { display: grid; justify-items: center; gap: 6px; width: 100%; border: 1px solid var(--border); border-radius: 22px; padding: 26px 24px 22px; text-align: center; box-shadow: 0 2px 12px rgba(23,23,28,.04); }
+.money-card strong { font-size: 18px; font-weight: 700; }
+.money-sub { display: inline-flex; align-items: center; gap: 4px; color: #6f6f7a; font-size: 14px; }
+.money-amount { margin: 6px 0 12px; font-size: 40px; font-weight: 700; letter-spacing: -.03em; line-height: 1; }
+.money-bar { position: relative; display: block; width: 100%; height: 8px; border-radius: 999px; background: #ececf0; }
+.money-bar i { position: absolute; top: 0; bottom: 0; left: 0; border-radius: 999px; background: #6cb4ff; }
+.money-bar i::after { position: absolute; top: 50%; right: -2px; width: 14px; height: 14px; transform: translateY(-50%); border-radius: 50%; background: #6cb4ff; box-shadow: 0 0 0 3px var(--background); content: ''; }
+.money-withdraw { display: inline-flex; min-width: 180px; height: 46px; align-items: center; justify-content: center; border-radius: 999px; background: linear-gradient(90deg, #ff3d6e, #f0149a); color: #fff; font-size: 16px; font-weight: 800; transition: filter .15s, opacity .15s; }
+.money-withdraw:hover:not(:disabled) { filter: brightness(1.07); }
+.money-withdraw:disabled { opacity: .45; cursor: not-allowed; }
+.money-pending { display: inline-flex; align-items: center; gap: 4px; margin-top: 10px; color: #8e8e98; font-size: 12px; }
+.money-method { display: inline-flex; height: 40px; align-items: center; gap: 8px; border: 1px solid var(--border); border-radius: 999px; padding: 0 18px; font-size: 15px; font-weight: 600; transition: background .15s; }
+.money-method:hover { background: var(--secondary); }
+.money-golive { display: inline-flex; min-width: 216px; height: 38px; align-items: center; justify-content: center; gap: 8px; border-radius: 999px; background: linear-gradient(90deg, #ff3d6e, #f0149a); color: #fff; font-size: 15px; font-weight: 700; transition: filter .15s; }
+.money-golive:hover { filter: brightness(1.07); }
+.money-stats { display: flex; gap: 36px; margin: 18px 0 0; }
+.money-stats div { display: grid; justify-items: center; gap: 2px; }
+.money-stats dt { font-size: 20px; font-weight: 700; }
+.money-stats dd { margin: 0; color: #8e8e98; font-size: 13px; }
+.money-history { width: 100%; margin-top: 10px; }
+.money-history h2 { margin: 0 0 10px; font-size: 18px; font-weight: 700; }
+.money-history ul { margin: 0; padding: 0; list-style: none; border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+.money-history li { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-top: 1px solid var(--border); padding: 12px 16px; }
+.money-history li:first-child { border-top: 0; }
+.money-history li div { display: grid; gap: 2px; }
+.money-history strong { font-size: 16px; }
+.money-history small { color: #8e8e98; font-size: 12px; }
+.money-status { flex: 0 0 auto; border-radius: 999px; padding: 4px 10px; font-size: 12px; font-weight: 700; }
+.money-status.is-requested { background: #fff4d6; color: #8a6100; }
+.money-status.is-paid { background: #e3f7e9; color: #1b7a3a; }
+.money-status.is-rejected { background: #ffe4ea; color: #b3123f; }
+.money-dialog { gap: 10px; }
+.money-dialog .fp-field { margin-bottom: 0; }
+.money-dialog .fp-field > span { font-size: 13px; }
+.money-dialog .fp-field input { font-size: 15px; padding: 9px 13px; }
+.money-types { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; border-radius: 999px; background: var(--secondary); padding: 3px; }
+.money-types button { height: 34px; border-radius: 999px; color: var(--muted-foreground); font-size: 14px; font-weight: 700; }
+.money-types button.is-active { background: var(--background); color: var(--foreground); box-shadow: 0 1px 3px rgba(23,23,28,.14); }
+
 /* ---- edit profile ---- */
 .ep-photo { position: relative; width: 192px; height: 192px; margin: 0 auto 30px; }
 .ep-photo-img { width: 192px; height: 192px; background: var(--secondary); }

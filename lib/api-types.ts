@@ -141,6 +141,38 @@ export type ChatPeer = PublicUser & {
   liveStreamId: string | null
 }
 
+/** ---- creator payouts ---- */
+
+export type PayoutMethod = {
+  type: 'PAYPAL' | 'BANK'
+  /** Shown in place of the details, e.g. "PayPal · a@b.com" or "Barclays · •••• 1234". */
+  label: string
+  paypalEmail: string | null
+  accountName: string | null
+  bankName: string | null
+  accountLast4: string | null
+  country: string | null
+}
+
+export type Payout = {
+  id: string
+  diamonds: number
+  amountCents: number
+  currency: string
+  status: 'REQUESTED' | 'PAID' | 'REJECTED'
+  method: string
+  note: string | null
+  createdAt: string
+  processedAt: string | null
+}
+
+export type PayoutSummary = {
+  diamonds: { total: number; pending: number; available: number; withdrawn: number; minimum: number; requested: number }
+  money: { currency: 'usd'; diamondsPerUsd: number; availableCents: number; minimumCents: number; holdDays: number }
+  method: PayoutMethod | null
+  payouts: Payout[]
+}
+
 export type CallStatus = 'RINGING' | 'ACTIVE' | 'ENDED' | 'MISSED'
 
 /** A private 1:1 video call inside a conversation. */

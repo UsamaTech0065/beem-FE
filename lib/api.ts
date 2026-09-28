@@ -12,6 +12,7 @@ import type {
   Wallet,
   LiveFollowedEntry,
   NewMember,
+  PayoutSummary,
   Page,
   ProfilePage,
   ProfilePost,
@@ -189,6 +190,12 @@ export function getCall(id: string, accessToken: string | null) {
 export function getChat(id: string, accessToken: string | null) {
   if (!accessToken) return Promise.resolve<DmConversation | null>(null)
   return safe(apiFetch<DmConversation>(`/chats/${encodeURIComponent(id)}`, { accessToken }), null, 'chat')
+}
+
+/** Diamonds, withdrawal method and payout history for the signed-in creator. */
+export function getPayoutSummary(accessToken: string | null) {
+  if (!accessToken) return Promise.resolve<PayoutSummary | null>(null)
+  return safe(apiFetch<PayoutSummary>('/payouts/summary', { accessToken }), null, 'payouts')
 }
 
 export function getCreatorStats(accessToken: string | null) {

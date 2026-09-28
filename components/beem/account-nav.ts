@@ -7,6 +7,7 @@
 export type AccountIcon =
   | 'following'
   | 'followers'
+  | 'money'
   | 'vault'
   | 'stats'
   | 'fans'
@@ -40,6 +41,7 @@ export const accountSections: AccountSection[] = [
   {
     title: 'Creator Tools',
     items: [
+      { label: 'Get Money', href: '/get-money', icon: 'money' },
       { label: 'My Vault', href: '/vault', icon: 'vault' },
       { label: 'Statistics', href: '/statistics', icon: 'stats' },
       { label: 'My Fans', href: '/fans', icon: 'fans' },
