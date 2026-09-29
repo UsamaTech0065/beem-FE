@@ -225,7 +225,7 @@ function MethodDialog({ current, stripeAvailable, onClose, onSaved, onError }: D
       ? paypalEmail.includes('@')
       : type === 'STRIPE'
         ? country.trim().length === 2
-        : accountName.trim() && bankName.trim() && accountNumber.trim().length >= 6 && country.trim().length === 2)
+        : accountName.trim() && bankName.trim() && (accountNumber.trim().length >= 6 || (!accountNumber && current?.accountLast4)) && country.trim().length === 2)
 
   async function save(event: FormEvent) {
     event.preventDefault()
@@ -248,7 +248,7 @@ function MethodDialog({ current, stripeAvailable, onClose, onSaved, onError }: D
       return
     }
 
-    const body = type === 'PAYPAL' ? { type, paypalEmail } : { type, accountName, bankName, accountNumber, country }
+    const body = type === 'PAYPAL' ? { type, paypalEmail } : { type, accountName, bankName, ...(accountNumber ? { accountNumber } : {}), country }
     const response = await fetch('/api/payouts/method', {
       method: 'PUT',
       headers: { 'content-type': 'application/json' },
