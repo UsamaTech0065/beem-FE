@@ -12,6 +12,7 @@ import type {
   Wallet,
   LiveFollowedEntry,
   NewMember,
+  AdminPayoutQueue,
   PayoutSummary,
   Page,
   ProfilePage,
@@ -196,6 +197,12 @@ export function getChat(id: string, accessToken: string | null) {
 export function getPayoutSummary(accessToken: string | null) {
   if (!accessToken) return Promise.resolve<PayoutSummary | null>(null)
   return safe(apiFetch<PayoutSummary>('/payouts/summary', { accessToken }), null, 'payouts')
+}
+
+/** Admin only: the payout queue. Null when the caller is not an admin or the API is down. */
+export function getPayoutQueue(accessToken: string | null) {
+  if (!accessToken) return Promise.resolve<AdminPayoutQueue | null>(null)
+  return safe(apiFetch<AdminPayoutQueue>('/payouts/queue', { accessToken }), null, 'payout queue')
 }
 
 export function getCreatorStats(accessToken: string | null) {

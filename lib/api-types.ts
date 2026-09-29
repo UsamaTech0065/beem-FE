@@ -143,9 +143,11 @@ export type ChatPeer = PublicUser & {
 
 /** ---- creator payouts ---- */
 
+export type PayoutMethodType = 'PAYPAL' | 'BANK' | 'STRIPE' | 'CARD'
+
 export type PayoutMethod = {
-  type: 'PAYPAL' | 'BANK' | 'STRIPE'
-  /** Shown in place of the details, e.g. "PayPal · a@b.com" or "Barclays · •••• 1234". */
+  type: PayoutMethodType
+  /** Shown in place of the details, e.g. "Visa · •••• 1234" or "Barclays · •••• 1234". */
   label: string
   paypalEmail: string | null
   accountName: string | null
@@ -173,9 +175,27 @@ export type PayoutSummary = {
   money: { currency: 'usd'; centsPer1000Coins: number; availableCents: number; minimumCents: number; holdDays: number }
   /** Whether Stripe is offered as a withdrawal method on this deployment. */
   stripeAvailable: boolean
+  /** Methods creators may pick here, in display order. */
+  methods: PayoutMethodType[]
   method: PayoutMethod | null
   payouts: Payout[]
 }
+
+/** A payout request as the admin queue shows it: who, and the full details to pay them. */
+export type AdminPayout = Payout & {
+  user: PublicUser
+  details: {
+    type: string
+    paypalEmail: string | null
+    accountName: string | null
+    bankName: string | null
+    accountNumber: string | null
+    country: string | null
+    stripeAccountId: string | null
+  }
+}
+
+export type AdminPayoutQueue = { pending: AdminPayout[]; recent: AdminPayout[] }
 
 export type CallStatus = 'RINGING' | 'ACTIVE' | 'ENDED' | 'MISSED'
 

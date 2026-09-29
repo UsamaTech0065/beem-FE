@@ -17,6 +17,7 @@ import {
   LogOut,
   QrCode,
   Radio,
+  ShieldCheck,
   Star,
   UserPlus,
   Users,
@@ -106,6 +107,19 @@ export function AccountMenu({ user, onClose, onSignOut }: Props) {
           </span>
           <ChevronRight size={18} strokeWidth={2} />
         </Link>
+      )}
+
+      {user.role === 'ADMIN' && (
+        <div className="acct-section">
+          <h4>Admin</h4>
+          <Link href="/admin/payouts" className="acct-item" onClick={onClose} role="menuitem">
+            <ShieldCheck size={22} strokeWidth={1.8} />
+            <span className="acct-item-text">
+              Payout requests
+              <small>Pay creators and mark withdrawals</small>
+            </span>
+          </Link>
+        </div>
       )}
 
       {accountSections.map((section) => (

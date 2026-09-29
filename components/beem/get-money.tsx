@@ -5,7 +5,9 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState, type FormEvent } from 'react'
 import { ExternalLink, Loader2, Pencil, Plus, Video } from 'lucide-react'
 import { CoinIcon } from './icons'
-import type { PayoutMethod, PayoutSummary } from '@/lib/api-types'
+import type { PayoutMethod, PayoutMethodType, PayoutSummary } from '@/lib/api-types'
+
+const METHOD_LABEL: Record<PayoutMethodType, string> = { STRIPE: 'Stripe', PAYPAL: 'PayPal', BANK: 'Bank transfer', CARD: 'Visa / Mastercard' }
 
 const dollars = (cents: number) => `$${(cents / 100).toLocaleString('en-US', { minimumFractionDigits: cents % 100 ? 2 : 0, maximumFractionDigits: 2 })}`
 const dateFormat = new Intl.DateTimeFormat('en', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })
@@ -31,7 +33,9 @@ export function GetMoney({ initial }: { initial: PayoutSummary }) {
   const missing = Math.max(0, coins.minimum - coins.available)
   const open = summary.payouts.find((payout) => payout.status === 'REQUESTED')
   const stripePending = summary.method?.type === 'STRIPE' && summary.method.stripeReady === false
-  const canWithdraw = Boolean(summary.method) && !stripePending
+  // A method saved when it was still offered (say PayPal) has to be replaced first.
+  const methodRetired = Boolean(summary.method) && !summary.methods.includes(summary.method!.type)
+  const canWithdraw = Boolean(summary.method) && !stripePending && !methodRetired
 
   // Back from Stripe's onboarding page: ask the API whether it was completed.
   const stripeReturn = params.get('stripe')
@@ -86,7 +90,7 @@ export function GetMoney({ initial }: { initial: PayoutSummary }) {
               <CoinIcon size={13} /> {open.coins.toLocaleString()} coins on their way to {open.method}
             </span>
             <b className="money-amount">{dollars(open.amountCents)}</b>
-            <span className="money-sub">Payouts are sent within 7 days.</span>
+            <span className="money-sub">Sent to your {open.method.startsWith('PayPal') ? 'PayPal' : open.method.startsWith('Stripe') ? 'Stripe account' : /^(Visa|Mastercard|Card)/.test(open.method) ? 'card' : 'bank account'} within 7 days.</span>
           </>
         ) : ready ? (
           <>
@@ -100,6 +104,7 @@ export function GetMoney({ initial }: { initial: PayoutSummary }) {
             </button>
             {!summary.method && <span className="money-sub">Add a withdrawal method below first.</span>}
             {stripePending && <span className="money-sub">Finish setting up Stripe below first.</span>}
+            {methodRetired && <span className="money-sub">That withdrawal method is no longer offered. Update it below first.</span>}
           </>
         ) : (
           <>
@@ -186,7 +191,7 @@ export function GetMoney({ initial }: { initial: PayoutSummary }) {
       {methodOpen && (
         <MethodDialog
           current={summary.method}
-          stripeAvailable={summary.stripeAvailable}
+          methods={summary.methods}
           onClose={() => setMethodOpen(false)}
           onSaved={(method) => {
             setSummary((current) => ({ ...current, method }))
@@ -200,17 +205,23 @@ export function GetMoney({ initial }: { initial: PayoutSummary }) {
   )
 }
 
-type MethodType = 'PAYPAL' | 'BANK' | 'STRIPE'
+type MethodType = PayoutMethodType
 type DialogProps = {
   current: PayoutMethod | null
-  stripeAvailable: boolean
+  /** What this deployment offers, in order; the first is the default. */
+  methods: PayoutMethodType[]
   onClose: () => void
   onSaved: (method: PayoutMethod) => void
   onError: (message: string) => void
 }
 
-function MethodDialog({ current, stripeAvailable, onClose, onSaved, onError }: DialogProps) {
-  const [type, setType] = useState<MethodType>(current?.type ?? (stripeAvailable ? 'STRIPE' : 'PAYPAL'))
+/** Digits only, in groups of four, at most 19 digits. */
+function formatCard(value: string): string {
+  return value.replace(/\D/g, '').slice(0, 19).replace(/(.{4})/g, '$1 ').trim()
+}
+
+function MethodDialog({ current, methods, onClose, onSaved, onError }: DialogProps) {
+  const [type, setType] = useState<MethodType>(current && methods.includes(current.type) ? current.type : (methods[0] ?? 'BANK'))
   const [paypalEmail, setPaypalEmail] = useState(current?.paypalEmail ?? '')
   const [accountName, setAccountName] = useState(current?.accountName ?? '')
   const [bankName, setBankName] = useState(current?.bankName ?? '')
@@ -219,13 +230,17 @@ function MethodDialog({ current, stripeAvailable, onClose, onSaved, onError }: D
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const digits = accountNumber.replace(/\s+/g, '')
+  const keepsSaved = !accountNumber && current?.type === type && Boolean(current?.accountLast4)
   const canSave =
     !busy &&
     (type === 'PAYPAL'
       ? paypalEmail.includes('@')
       : type === 'STRIPE'
         ? country.trim().length === 2
-        : accountName.trim() && bankName.trim() && (accountNumber.trim().length >= 6 || (!accountNumber && current?.accountLast4)) && country.trim().length === 2)
+        : type === 'CARD'
+          ? Boolean(accountName.trim()) && (/^\d{13,19}$/.test(digits) || keepsSaved) && country.trim().length === 2
+          : Boolean(accountName.trim() && bankName.trim()) && (digits.length >= 6 || keepsSaved) && country.trim().length === 2)
 
   async function save(event: FormEvent) {
     event.preventDefault()
@@ -248,7 +263,10 @@ function MethodDialog({ current, stripeAvailable, onClose, onSaved, onError }: D
       return
     }
 
-    const body = type === 'PAYPAL' ? { type, paypalEmail } : { type, accountName, bankName, ...(accountNumber ? { accountNumber } : {}), country }
+    const body =
+      type === 'PAYPAL'
+        ? { type, paypalEmail }
+        : { type, accountName, ...(bankName.trim() ? { bankName } : {}), ...(digits ? { accountNumber: digits } : {}), country }
     const response = await fetch('/api/payouts/method', {
       method: 'PUT',
       headers: { 'content-type': 'application/json' },
@@ -269,19 +287,15 @@ function MethodDialog({ current, stripeAvailable, onClose, onSaved, onError }: D
       <form className="fp-modal money-dialog" onSubmit={save}>
         <h2 id="method-title">Withdrawal method</h2>
 
-        <div className="money-types" role="radiogroup" aria-label="Method">
-          {stripeAvailable && (
-            <button type="button" role="radio" aria-checked={type === 'STRIPE'} className={type === 'STRIPE' ? 'is-active' : ''} onClick={() => setType('STRIPE')}>
-              Stripe
-            </button>
-          )}
-          <button type="button" role="radio" aria-checked={type === 'PAYPAL'} className={type === 'PAYPAL' ? 'is-active' : ''} onClick={() => setType('PAYPAL')}>
-            PayPal
-          </button>
-          <button type="button" role="radio" aria-checked={type === 'BANK'} className={type === 'BANK' ? 'is-active' : ''} onClick={() => setType('BANK')}>
-            Bank transfer
-          </button>
-        </div>
+        {methods.length > 1 && (
+          <div className="money-types" role="radiogroup" aria-label="Method">
+            {methods.map((option) => (
+              <button key={option} type="button" role="radio" aria-checked={type === option} className={type === option ? 'is-active' : ''} onClick={() => setType(option)}>
+                {METHOD_LABEL[option]}
+              </button>
+            ))}
+          </div>
+        )}
 
         {type === 'STRIPE' ? (
           <>
@@ -300,6 +314,33 @@ function MethodDialog({ current, stripeAvailable, onClose, onSaved, onError }: D
             <span>PayPal email</span>
             <input type="email" value={paypalEmail} onChange={(event) => setPaypalEmail(event.target.value)} placeholder="you@example.com" autoFocus />
           </label>
+        ) : type === 'CARD' ? (
+          <>
+            <p className="money-note">We send the money straight to your Visa or Mastercard. It usually arrives within 1 to 3 business days.</p>
+            <label className="fp-field">
+              <span>Name on card</span>
+              <input value={accountName} onChange={(event) => setAccountName(event.target.value)} autoComplete="cc-name" autoFocus />
+            </label>
+            <label className="fp-field">
+              <span>Card number</span>
+              <input
+                inputMode="numeric"
+                autoComplete="cc-number"
+                value={accountNumber}
+                onChange={(event) => setAccountNumber(formatCard(event.target.value))}
+                placeholder={current?.type === 'CARD' && current.accountLast4 ? `Ends in ${current.accountLast4}` : '4242 4242 4242 4242'}
+                spellCheck={false}
+              />
+            </label>
+            <label className="fp-field">
+              <span>Issuing bank (optional)</span>
+              <input value={bankName} onChange={(event) => setBankName(event.target.value)} placeholder="HBL, Meezan, Barclays..." />
+            </label>
+            <label className="fp-field">
+              <span>Card country (2 letters)</span>
+              <input value={country} onChange={(event) => setCountry(event.target.value.toUpperCase().slice(0, 2))} placeholder="PK" />
+            </label>
+          </>
         ) : (
           <>
             <label className="fp-field">
@@ -312,7 +353,7 @@ function MethodDialog({ current, stripeAvailable, onClose, onSaved, onError }: D
             </label>
             <label className="fp-field">
               <span>IBAN or account number</span>
-              <input value={accountNumber} onChange={(event) => setAccountNumber(event.target.value)} placeholder={current?.accountLast4 ? `Ends in ${current.accountLast4}` : ''} spellCheck={false} />
+              <input value={accountNumber} onChange={(event) => setAccountNumber(event.target.value)} placeholder={current?.type === 'BANK' && current.accountLast4 ? `Ends in ${current.accountLast4}` : ''} spellCheck={false} />
             </label>
             <label className="fp-field">
               <span>Bank country (2 letters)</span>
