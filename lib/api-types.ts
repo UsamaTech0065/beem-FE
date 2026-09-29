@@ -193,6 +193,9 @@ export type Call = {
   durationSeconds: number | null
 }
 
+/** A call ringing for you, with who is calling. */
+export type IncomingCall = { call: Call; caller: PublicUser }
+
 /** What the browser needs to join a call's room. */
 export type CallConnection = { url: string; token: string; identity: string; peerIdentity: string }
 

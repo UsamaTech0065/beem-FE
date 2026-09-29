@@ -121,6 +121,20 @@
 .tg-nav-item { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 54px; color: var(--foreground); font-size: 12px; font-weight: 500; line-height: 1; }
 .tg-nav-item.is-active { font-weight: 700; }
 .tg-nav-icon { position: relative; display: grid; place-items: center; }
+/* incoming 1:1 call banner, shown on every page */
+.call-alert { position: fixed; top: calc(12px + env(safe-area-inset-top)); left: 50%; z-index: 90; display: flex; align-items: center; gap: 12px; width: min(calc(100vw - 32px), 420px); transform: translateX(-50%); border: 1px solid var(--border); border-radius: 18px; background: var(--card); padding: 12px 14px; color: var(--foreground); box-shadow: 0 18px 44px rgba(0,0,0,.28); animation: call-alert-in .28s ease-out; }
+@keyframes call-alert-in { from { opacity: 0; transform: translate(-50%, -16px); } to { opacity: 1; transform: translate(-50%, 0); } }
+.call-alert-avatar { flex: none; }
+.call-alert-text { display: grid; flex: 1; min-width: 0; gap: 2px; }
+.call-alert-text strong { overflow: hidden; font-size: 15px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.call-alert-text span { color: var(--muted-foreground); font-size: 13px; }
+.call-alert-actions { display: flex; flex: none; gap: 10px; }
+.call-alert-btn { display: grid; width: 44px; height: 44px; place-items: center; border: 0; border-radius: 999px; color: #fff; cursor: pointer; transition: transform .12s ease; }
+.call-alert-btn:hover { transform: scale(1.06); }
+.call-alert-btn:disabled { opacity: .6; cursor: default; }
+.call-alert-btn--decline { background: #e5484d; }
+.call-alert-btn--answer { background: #22a35a; animation: call-alert-pulse 1.2s ease-in-out infinite; }
+@keyframes call-alert-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(34,163,90,.55); } 60% { box-shadow: 0 0 0 12px rgba(34,163,90,0); } }
 .nav-count { position: absolute; top: -6px; right: -10px; display: grid; min-width: 18px; height: 18px; place-items: center; border: 2px solid var(--background); border-radius: 999px; background: var(--primary); padding: 0 4px; color: #fff; font-size: 10px; font-weight: 800; line-height: 1; }
 .tg-actions { display: flex; align-items: center; gap: 10px; flex: 0 0 auto; }
 .tg-balance { display: flex; align-items: center; gap: 8px; height: 40px; border-radius: 999px; background: var(--secondary); padding: 0 6px 0 16px; font-size: 13px; white-space: nowrap; }

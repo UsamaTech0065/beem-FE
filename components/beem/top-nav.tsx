@@ -11,6 +11,7 @@ import { isNavActive, navigationItems } from './data'
 import { SignInDialog } from './sign-in-dialog'
 import { BuyCoins } from './buy-coins'
 import { SearchBox } from './search-box'
+import { IncomingCallAlert } from './incoming-call-alert'
 import { useUnreadChats } from '@/lib/unread-chats'
 import { CoinIcon, EyeFilled } from './icons'
 
@@ -171,6 +172,7 @@ export function TopNav({ user, initialQuery }: { user: CurrentUser | null; initi
       )}
 
       {authOpen && <SignInDialog onClose={closeAuth} />}
+      {user && <IncomingCallAlert />}
       <BuyCoins open={buyOpen} onClose={() => setBuyOpen(false)} signedIn={Boolean(user)} />
     </header>
   )
