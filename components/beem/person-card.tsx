@@ -2,7 +2,8 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
-import { Check, Gem, Users } from 'lucide-react'
+import { Check, Users } from 'lucide-react'
+import { CoinIcon } from './icons'
 import type { SearchPerson } from '@/lib/api-types'
 import { compactNumber } from './account-nav'
 import { SignInDialog } from './sign-in-dialog'
@@ -43,7 +44,7 @@ export function PersonCard({ person, signedIn }: Props) {
         <strong>{person.displayName}</strong>
         <span className="person-card-stats">
           <span>
-            <Gem size={12} strokeWidth={2.2} /> {compactNumber(person.diamondsTotal)}
+            <CoinIcon size={12} /> {compactNumber(person.diamondsTotal)}
           </span>
           <span>
             <Users size={12} strokeWidth={2.2} /> {compactNumber(followers)}

@@ -1,8 +1,8 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { Gem, Play } from 'lucide-react'
+import { Play } from 'lucide-react'
 import { formatDiamonds, type StreamCard as StreamCardData } from '@/lib/api-types'
-import { EyeFilled } from './icons'
+import { EyeFilled, CoinIcon } from './icons'
 
 const FALLBACK_THUMB = '/placeholder.jpg'
 const FALLBACK_AVATAR = '/placeholder-user.jpg'
@@ -61,7 +61,7 @@ export function StreamCard({ stream, priority = false }: Props) {
             <div className="stream-meta">
               <h2>{stream.host.displayName}</h2>
               <p>
-                <Gem size={14} strokeWidth={2.2} /> {formatDiamonds(stream.diamondsTotal)}
+                <CoinIcon size={14} /> {formatDiamonds(stream.diamondsTotal)}
               </p>
             </div>
           </div>

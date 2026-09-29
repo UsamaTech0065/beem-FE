@@ -158,7 +158,7 @@ export type PayoutMethod = {
 
 export type Payout = {
   id: string
-  diamonds: number
+  coins: number
   amountCents: number
   currency: string
   status: 'REQUESTED' | 'PAID' | 'REJECTED'
@@ -169,8 +169,8 @@ export type Payout = {
 }
 
 export type PayoutSummary = {
-  diamonds: { total: number; pending: number; available: number; withdrawn: number; minimum: number; requested: number }
-  money: { currency: 'usd'; diamondsPerUsd: number; availableCents: number; minimumCents: number; holdDays: number }
+  coins: { earned: number; pending: number; available: number; withdrawn: number; minimum: number; requested: number; balance: number }
+  money: { currency: 'usd'; centsPer1000Coins: number; availableCents: number; minimumCents: number; holdDays: number }
   /** Whether Stripe is offered as a withdrawal method on this deployment. */
   stripeAvailable: boolean
   method: PayoutMethod | null

@@ -8,7 +8,6 @@ import {
   Check,
   Eye,
   EyeOff,
-  Gem,
   Gift,
   Loader2,
   Mic,
@@ -199,7 +198,7 @@ export function StreamRoom({ stream, user, studio }: Props) {
               <div>
                 <strong>{stream.host.displayName}</strong>
                 <span>
-                  <Gem size={13} strokeWidth={2.2} /> {formatDiamonds(stream.diamondsTotal)}
+                  <CoinIcon size={13} /> {formatDiamonds(stream.diamondsTotal)}
                 </span>
               </div>
             </Link>
@@ -275,12 +274,12 @@ export function StreamRoom({ stream, user, studio }: Props) {
       </button>
 
       {isHost && !over && (
-        <div className="live-stats" title="Watching now and diamonds this live">
+        <div className="live-stats" title="Watching now and coins gifted this live">
           <span>
             <EyeFilled size={15} /> {room.viewerCount}
           </span>
           <span>
-            <Gem size={15} strokeWidth={2.2} /> {formatDiamonds(stream.diamondsTotal)}
+            <CoinIcon size={15} /> {formatDiamonds(stream.diamondsTotal)}
           </span>
         </div>
       )}

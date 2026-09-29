@@ -1,6 +1,5 @@
 import Link from 'next/link'
-import { Gem } from 'lucide-react'
-import { EyeFilled } from './icons'
+import { EyeFilled, CoinIcon } from './icons'
 
 const FALLBACK_AVATAR = '/placeholder-user.jpg'
 
@@ -46,7 +45,7 @@ export function LeaderRow({
         {metric === 'views' ? (
           <EyeFilled size={16} />
         ) : (
-          <Gem size={15} strokeWidth={2.2} />
+          <CoinIcon size={15} />
         )}
         {/* Full precision with separators: a leaderboard is a ranking, and
             abbreviating to "1.1M" would make adjacent places look identical. */}

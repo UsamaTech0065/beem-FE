@@ -3,7 +3,8 @@
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState, type FormEvent } from 'react'
-import { ExternalLink, Gem, Loader2, Pencil, Plus, Video } from 'lucide-react'
+import { ExternalLink, Loader2, Pencil, Plus, Video } from 'lucide-react'
+import { CoinIcon } from './icons'
 import type { PayoutMethod, PayoutSummary } from '@/lib/api-types'
 
 const dollars = (cents: number) => `$${(cents / 100).toLocaleString('en-US', { minimumFractionDigits: cents % 100 ? 2 : 0, maximumFractionDigits: 2 })}`
@@ -24,10 +25,10 @@ export function GetMoney({ initial }: { initial: PayoutSummary }) {
   const [withdrawing, setWithdrawing] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
 
-  const { diamonds, money } = summary
-  const ready = diamonds.available >= diamonds.minimum
-  const progress = Math.min(1, diamonds.available / diamonds.minimum)
-  const missing = Math.max(0, diamonds.minimum - diamonds.available)
+  const { coins, money } = summary
+  const ready = coins.available >= coins.minimum
+  const progress = Math.min(1, coins.available / coins.minimum)
+  const missing = Math.max(0, coins.minimum - coins.available)
   const open = summary.payouts.find((payout) => payout.status === 'REQUESTED')
   const stripePending = summary.method?.type === 'STRIPE' && summary.method.stripeReady === false
   const canWithdraw = Boolean(summary.method) && !stripePending
@@ -60,7 +61,7 @@ export function GetMoney({ initial }: { initial: PayoutSummary }) {
     setWithdrawing(false)
     if (!response?.ok) return setToast(body?.message ?? 'Could not request the withdrawal. Try again.')
     if (body?.status === 'PAID') setToast(`${dollars(body.amountCents ?? 0)} sent to Stripe. It reaches your bank on Stripe's schedule.`)
-    else if (body?.status === 'REJECTED') setToast(body.note ?? 'Stripe refused the transfer. Your diamonds are back in your balance.')
+    else if (body?.status === 'REJECTED') setToast(body.note ?? 'Stripe refused the transfer. Your coins are back in your balance.')
     else setToast(`Withdrawal of ${dollars(body?.amountCents ?? 0)} requested.`)
     const fresh = await loadSummary()
     if (fresh) setSummary(fresh)
@@ -82,7 +83,7 @@ export function GetMoney({ initial }: { initial: PayoutSummary }) {
           <>
             <strong>Withdrawal in progress</strong>
             <span className="money-sub">
-              <Gem size={13} strokeWidth={2.2} /> {open.diamonds.toLocaleString()} diamonds on their way to {open.method}
+              <CoinIcon size={13} /> {open.coins.toLocaleString()} coins on their way to {open.method}
             </span>
             <b className="money-amount">{dollars(open.amountCents)}</b>
             <span className="money-sub">Payouts are sent within 7 days.</span>
@@ -91,7 +92,7 @@ export function GetMoney({ initial }: { initial: PayoutSummary }) {
           <>
             <strong>Ready to withdraw</strong>
             <span className="money-sub">
-              <Gem size={13} strokeWidth={2.2} /> {diamonds.available.toLocaleString()} diamonds available
+              <CoinIcon size={13} /> {coins.available.toLocaleString()} coins available
             </span>
             <b className="money-amount">{dollars(money.availableCents)}</b>
             <button type="button" className="money-withdraw" onClick={withdraw} disabled={withdrawing || !canWithdraw}>
@@ -104,17 +105,17 @@ export function GetMoney({ initial }: { initial: PayoutSummary }) {
           <>
             <strong>Great job!</strong>
             <span className="money-sub">
-              Only <Gem size={13} strokeWidth={2.2} /> {missing.toLocaleString()} left to get
+              Only <CoinIcon size={13} /> {missing.toLocaleString()} left to get
             </span>
             <b className="money-amount">{dollars(money.minimumCents)}</b>
-            <span className="money-bar" role="progressbar" aria-valuemin={0} aria-valuemax={diamonds.minimum} aria-valuenow={diamonds.available}>
+            <span className="money-bar" role="progressbar" aria-valuemin={0} aria-valuemax={coins.minimum} aria-valuenow={coins.available}>
               <i style={{ width: `${Math.max(2, progress * 100)}%` }} />
             </span>
           </>
         )}
-        {diamonds.pending > 0 && (
+        {coins.pending > 0 && (
           <span className="money-pending">
-            <Gem size={12} strokeWidth={2.2} /> {diamonds.pending.toLocaleString()} more become available {money.holdDays} days after they were received
+            <CoinIcon size={12} /> {coins.pending.toLocaleString()} more become available {money.holdDays} days after they were received
           </span>
         )}
       </section>
@@ -144,16 +145,16 @@ export function GetMoney({ initial }: { initial: PayoutSummary }) {
 
       <dl className="money-stats">
         <div>
-          <dt>{diamonds.total.toLocaleString()}</dt>
+          <dt>{coins.earned.toLocaleString()}</dt>
           <dd>Earned</dd>
         </div>
         <div>
-          <dt>{diamonds.withdrawn.toLocaleString()}</dt>
+          <dt>{coins.withdrawn.toLocaleString()}</dt>
           <dd>Withdrawn</dd>
         </div>
         <div>
-          <dt>{money.diamondsPerUsd.toLocaleString()}</dt>
-          <dd>Diamonds = $1</dd>
+          <dt>{dollars(money.centsPer1000Coins)}</dt>
+          <dd>per 1,000 coins</dd>
         </div>
       </dl>
 
@@ -166,7 +167,7 @@ export function GetMoney({ initial }: { initial: PayoutSummary }) {
                 <div>
                   <strong>{dollars(payout.amountCents)}</strong>
                   <small>
-                    {payout.diamonds.toLocaleString()} diamonds &middot; {payout.method} &middot; {dateFormat.format(new Date(payout.createdAt))}
+                    {payout.coins.toLocaleString()} coins &middot; {payout.method} &middot; {dateFormat.format(new Date(payout.createdAt))}
                   </small>
                   {payout.note && <small>{payout.note}</small>}
                 </div>

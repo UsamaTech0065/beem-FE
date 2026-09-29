@@ -23,7 +23,7 @@ import {
 } from 'lucide-react'
 import type { DmConversation, ProfilePage, ProfilePost } from '@/lib/api-types'
 import { compactNumber } from './account-nav'
-import { EyeFilled } from './icons'
+import { EyeFilled, CoinIcon } from './icons'
 import { ProfilePosts } from './profile-posts'
 import { SignInDialog } from './sign-in-dialog'
 import { UserAvatar } from './user-avatar'
@@ -164,7 +164,7 @@ export function ProfileView({ profile, posts, signedIn }: Props) {
               value={compactNumber(profile.diamondsTotal)}
               label={
                 <>
-                  <Gem size={13} strokeWidth={2.2} /> Earned
+                  <CoinIcon size={13} /> Earned
                 </>
               }
             />

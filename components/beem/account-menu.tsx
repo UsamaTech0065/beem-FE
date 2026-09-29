@@ -6,7 +6,6 @@ import {
   ChartColumn,
   ChevronRight,
   Crown,
-  Diamond,
   Gamepad2,
   Gavel,
   Gem,
@@ -22,6 +21,7 @@ import {
   UserPlus,
   Users,
 } from 'lucide-react'
+import { CoinIcon } from './icons'
 import type { CurrentUser } from '@/lib/api-types'
 import { accountSections, compactNumber, type AccountIcon } from './account-nav'
 
@@ -78,8 +78,8 @@ export function AccountMenu({ user, onClose, onSignOut }: Props) {
         <div className="acct-profile-body">
           <strong>{user.displayName}</strong>
           <div className="acct-profile-stats">
-            <span title="Diamonds earned">
-              <Diamond size={14} strokeWidth={2.2} />
+            <span title="Coins earned from gifts">
+              <CoinIcon size={14} />
               {compactNumber(user.diamondsTotal)}
             </span>
             <span title="Followers">
