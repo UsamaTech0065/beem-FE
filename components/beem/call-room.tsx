@@ -1,10 +1,12 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect } from 'react'
-import { Mic, MicOff, PhoneOff, SwitchCamera, Video, VideoOff } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Gift, Mic, MicOff, PhoneOff, SwitchCamera, Video, VideoOff } from 'lucide-react'
 import type { Call, CurrentUser, PublicUser } from '@/lib/api-types'
 import { useCallRoom } from '@/lib/use-call-room'
+import { GiftBurstView } from './gift-burst'
+import { GiftPanel, type GiftItem } from './gift-panel'
 import { TrackAudio, TrackVideo } from './track-media'
 import { UserAvatar } from './user-avatar'
 
@@ -20,6 +22,10 @@ export function CallRoom({ call, peer, user }: Props) {
   const room = useCallRoom(call.id)
   const backHref = `/chats?c=${encodeURIComponent(call.conversationId)}`
   const iAmCaller = call.callerId === user.id
+  const [giftsOpen, setGiftsOpen] = useState(false)
+  const [coins, setCoins] = useState(user.coins)
+  const [giftBusy, setGiftBusy] = useState(false)
+  const [toast, setToast] = useState<string | null>(null)
 
   // Leaving the page hangs up, so the other person is not left talking to nobody.
   useEffect(() => {
@@ -29,6 +35,41 @@ export function CallRoom({ call, peer, user }: Props) {
     window.addEventListener('pagehide', onUnload)
     return () => window.removeEventListener('pagehide', onUnload)
   }, [call.id])
+
+  useEffect(() => {
+    if (!toast) return
+    const timer = setTimeout(() => setToast(null), 2600)
+    return () => clearTimeout(timer)
+  }, [toast])
+
+  async function pickGift(gift: GiftItem) {
+    if (giftBusy) return
+    if (coins < gift.coins) return setToast(`Not enough coins for ${gift.name}. Top up from your balance.`)
+
+    setGiftBusy(true)
+    const response = await fetch(`/api/calls/${encodeURIComponent(call.id)}/gift`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ giftId: gift.id }),
+    }).catch(() => null)
+    setGiftBusy(false)
+
+    if (!response?.ok) {
+      const body = (await response?.json().catch(() => null)) as { message?: string } | null
+      return setToast(body?.message ?? 'Could not send the gift.')
+    }
+    const data = (await response.json()) as { coins: number }
+    setCoins(data.coins)
+    setGiftsOpen(false)
+    void room.sendGift({
+      id: `${user.id}:${Date.now()}`,
+      giftId: gift.id,
+      emoji: gift.emoji,
+      giftName: gift.name,
+      senderName: user.displayName,
+      coins: gift.coins,
+    })
+  }
 
   const over = room.phase === 'ended' || room.phase === 'error'
 
@@ -52,6 +93,7 @@ export function CallRoom({ call, peer, user }: Props) {
             </span>
           </div>
         )}
+        <GiftBurstView burst={room.giftBurst} />
       </div>
 
       {!over && (
@@ -85,6 +127,9 @@ export function CallRoom({ call, peer, user }: Props) {
           <button type="button" className={`live-round live-round--lg${room.micOn ? '' : ' is-off'}`} onClick={room.toggleMic} aria-label={room.micOn ? 'Mute microphone' : 'Unmute microphone'}>
             {room.micOn ? <Mic size={22} /> : <MicOff size={22} />}
           </button>
+          <button type="button" className="live-round live-round--lg live-round--coin" onClick={() => setGiftsOpen((open) => !open)} aria-label="Send a gift" aria-expanded={giftsOpen}>
+            <Gift size={22} />
+          </button>
           <button type="button" className="live-round live-round--lg call-hangup" onClick={room.hangUp} aria-label="End call">
             <PhoneOff size={24} />
           </button>
@@ -96,6 +141,14 @@ export function CallRoom({ call, peer, user }: Props) {
               <SwitchCamera size={22} />
             </button>
           )}
+        </div>
+      )}
+
+      {giftsOpen && !over && <GiftPanel balance={coins} onClose={() => setGiftsOpen(false)} onPick={pickGift} />}
+
+      {toast && (
+        <div className="live-toast" role="status">
+          {toast}
         </div>
       )}
     </div>

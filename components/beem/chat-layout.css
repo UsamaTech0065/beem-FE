@@ -114,6 +114,14 @@
 .msg--mine time { justify-self: end; }
 .msg-hi { display: grid; align-self: center; justify-items: center; gap: 4px; margin: 10px 0; color: var(--muted-foreground); font-size: 13px; font-weight: 600; }
 .msg-hi span { font-size: 44px; line-height: 1; }
+/* gift lines */
+.msg-gift { display: flex; align-items: center; gap: 12px; max-width: min(72%, 360px); border-radius: 18px; background: linear-gradient(135deg, #fff1f6, #f4f0ff); padding: 10px 16px 10px 12px; }
+.msg-gift--theirs { align-self: flex-start; }
+.msg-gift--mine { align-self: flex-end; }
+.msg-gift-emoji { font-size: 40px; line-height: 1; }
+.msg-gift-text { display: grid; gap: 2px; font-size: 14px; }
+.msg-gift-text strong { font-weight: 700; }
+.msg-gift-text small { display: inline-flex; align-items: center; gap: 4px; color: var(--muted-foreground); font-size: 12px; }
 /* 1:1 call lines */
 .call-card { display: grid; justify-items: center; gap: 6px; width: 220px; max-width: 72%; border-radius: 18px; background: linear-gradient(180deg, #a9a9b2, #6f6f7a); padding: 22px 16px 10px; color: #fff; text-align: center; }
 .call-card--theirs { align-self: flex-start; }

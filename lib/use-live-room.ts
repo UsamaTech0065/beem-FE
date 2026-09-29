@@ -478,7 +478,7 @@ export function useLiveRoom(streamId: string | null, sender: ChatSender | null, 
 }
 
 /** TextEncoder types its output over ArrayBufferLike; publishData wants a plain ArrayBuffer. */
-function encode(value: unknown): Uint8Array<ArrayBuffer> {
+export function encode(value: unknown): Uint8Array<ArrayBuffer> {
   const bytes = new TextEncoder().encode(JSON.stringify(value))
   const payload = new Uint8Array(new ArrayBuffer(bytes.byteLength))
   payload.set(bytes)
@@ -500,7 +500,7 @@ function parseFollowEvent(raw: string): { name: string; avatarUrl: string | null
 }
 
 /** A gift from another browser: keep only the display fields, bounded. */
-function parseGiftEvent(raw: string): GiftBurst | null {
+export function parseGiftEvent(raw: string): GiftBurst | null {
   try {
     const data = JSON.parse(raw) as Record<string, unknown>
     if (data.type !== 'gift') return null

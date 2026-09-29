@@ -200,11 +200,14 @@ export type DmMessage = {
   id: string
   senderId: string
   /** HI is the wave from "Say hi", drawn as a greeting rather than a bubble; CALL stands for a 1:1 call. */
-  kind: 'TEXT' | 'HI' | 'CALL'
+  kind: 'TEXT' | 'HI' | 'CALL' | 'GIFT'
   text: string
   createdAt: string
   /** Present on CALL lines. */
   call?: Call
+  /** Present on GIFT lines. */
+  giftId?: string
+  giftCoins?: number
 }
 
 export type DmConversation = {

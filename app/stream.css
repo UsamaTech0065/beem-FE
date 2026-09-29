@@ -227,6 +227,10 @@
 .call-top span { color: rgba(255,255,255,.75); font-size: 12px; font-variant-numeric: tabular-nums; }
 .call-controls { position: absolute; bottom: calc(28px + env(safe-area-inset-bottom)); left: 50%; z-index: 3; display: flex; gap: 16px; transform: translateX(-50%); }
 .call-hangup { background: var(--destructive); }
+.call .gift-burst { bottom: 30%; }
+@media (max-width: 760px) {
+  .call .gifts { top: auto; right: 0; bottom: 0; left: 0; width: auto; max-height: 60vh; max-height: 60dvh; border-radius: 18px 18px 0 0; padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
+}
 .call-hangup:hover:not(:disabled) { background: #d12f2f; }
 .call-over { position: absolute; bottom: calc(40px + env(safe-area-inset-bottom)); left: 50%; z-index: 3; display: grid; justify-items: center; gap: 8px; transform: translateX(-50%); text-align: center; }
 .call-over strong { font-size: 18px; font-weight: 800; }

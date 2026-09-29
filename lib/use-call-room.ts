@@ -3,6 +3,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Room, Track } from 'livekit-client'
 import type { CallConnection, CallStatus } from './api-types'
+import { encode, parseGiftEvent, type GiftBurst } from './use-live-room'
+
+const GIFT_TOPIC = 'gift'
 
 export type CallPhase = 'connecting' | 'waiting' | 'active' | 'ended' | 'error'
 
@@ -23,6 +26,10 @@ export type CallRoom = {
   facingUser: boolean
   /** Seconds since both were connected. */
   elapsed: number
+  /** The latest gift either side sent, for the animation. */
+  giftBurst: GiftBurst | null
+  /** Show a gift you just sent and tell the other side about it. */
+  sendGift: (gift: GiftBurst) => Promise<void>
   toggleMic: () => Promise<void>
   toggleCamera: () => Promise<void>
   flipCamera: () => Promise<void>
@@ -47,9 +54,17 @@ export function useCallRoom(callId: string): CallRoom {
   const [canFlipCamera, setCanFlipCamera] = useState(false)
   const [facingUser, setFacingUser] = useState(true)
   const [elapsed, setElapsed] = useState(0)
+  const [giftBurst, setGiftBurst] = useState<GiftBurst | null>(null)
+  const giftTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const roomRef = useRef<Room | null>(null)
   const livekitRef = useRef<typeof import('livekit-client') | null>(null)
   const startedAtRef = useRef<number | null>(null)
+
+  const showGift = useCallback((gift: GiftBurst) => {
+    setGiftBurst(gift)
+    if (giftTimerRef.current) clearTimeout(giftTimerRef.current)
+    giftTimerRef.current = setTimeout(() => setGiftBurst(null), 4_000)
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -120,6 +135,11 @@ export function useCallRoom(callId: string): CallRoom {
           // A 1:1 is over the moment the other person leaves.
           if (!cancelled && isPeer(participant.identity)) over('ENDED')
         })
+        .on(RoomEvent.DataReceived, (payload, participant, _kind, topic) => {
+          if (cancelled || !participant || topic !== GIFT_TOPIC) return
+          const gift = parseGiftEvent(new TextDecoder().decode(payload))
+          if (gift) showGift(gift)
+        })
         .on(RoomEvent.Disconnected, (reason) => {
           if (cancelled) return
           if (reason === DisconnectReason.ROOM_DELETED || reason === DisconnectReason.PARTICIPANT_REMOVED) over('ENDED')
@@ -175,9 +195,10 @@ export function useCallRoom(callId: string): CallRoom {
       cancelled = true
       roomRef.current = null
       if (poll) clearInterval(poll)
+      if (giftTimerRef.current) clearTimeout(giftTimerRef.current)
       void room?.disconnect()
     }
-  }, [callId])
+  }, [callId, showGift])
 
   // Stop polling once the peer is in.
   useEffect(() => {
@@ -213,6 +234,16 @@ export function useCallRoom(callId: string): CallRoom {
     setFacingUser(next === 'user')
   }, [facingUser])
 
+  const sendGift = useCallback(
+    async (gift: GiftBurst) => {
+      showGift(gift)
+      const room = roomRef.current
+      if (!room) return
+      await room.localParticipant.publishData(encode({ type: 'gift', ...gift }), { reliable: true, topic: GIFT_TOPIC })
+    },
+    [showGift],
+  )
+
   const hangUp = useCallback(async () => {
     await fetch(`/api/calls/${encodeURIComponent(callId)}/end`, { method: 'POST' }).catch(() => null)
     void roomRef.current?.disconnect()
@@ -232,6 +263,8 @@ export function useCallRoom(callId: string): CallRoom {
     canFlipCamera,
     facingUser,
     elapsed,
+    giftBurst,
+    sendGift,
     toggleMic,
     toggleCamera,
     flipCamera,

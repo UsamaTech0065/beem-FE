@@ -52,6 +52,8 @@ export function ChatThread({ me, conversation, onBack, onChanged }: Props) {
   const [giftsOpen, setGiftsOpen] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const [emojiOpen, setEmojiOpen] = useState(false)
+  const [coins, setCoins] = useState(me.coins)
+  const [giftBusy, setGiftBusy] = useState(false)
   const scroller = useRef<HTMLDivElement | null>(null)
   const draftInput = useRef<HTMLInputElement | null>(null)
   const newestRef = useRef<string | null>(null)
@@ -125,6 +127,29 @@ export function ChatThread({ me, conversation, onBack, onChanged }: Props) {
     newestRef.current = message.createdAt
     setMessages((current) => [...current, message])
     setDraft('')
+    onChanged?.()
+  }
+
+  /** Send a gift to the other person; it appears as a line in the chat for both. */
+  async function sendGift(gift: { id: string; name: string; coins: number }) {
+    if (!conversationId || giftBusy) return
+    if (coins < gift.coins) return setToast(`Not enough coins for ${gift.name}. Top up from your balance.`)
+    setGiftBusy(true)
+    const response = await fetch(`/api/chats/${conversationId}/gift`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ giftId: gift.id }),
+    }).catch(() => null)
+    setGiftBusy(false)
+    if (!response?.ok) {
+      const body = (await response?.json().catch(() => null)) as { message?: string } | null
+      return setToast(body?.message ?? 'Could not send the gift.')
+    }
+    const data = (await response.json()) as { coins: number }
+    setCoins(data.coins)
+    setGiftsOpen(false)
+    // The gift line was written by the API; pick it up like any other new message.
+    await fetchMessages(newestRef.current)
     onChanged?.()
   }
 
@@ -258,6 +283,22 @@ export function ChatThread({ me, conversation, onBack, onChanged }: Props) {
             if (message.kind === 'CALL' && message.call) {
               return <CallCard key={message.id} call={message.call} mine={mine} peerName={peer.displayName} />
             }
+            if (message.kind === 'GIFT') {
+              const [emoji, ...rest] = message.text.split(' ')
+              return (
+                <div key={message.id} className={`msg-gift ${mine ? 'msg-gift--mine' : 'msg-gift--theirs'}`}>
+                  <span className="msg-gift-emoji" aria-hidden="true">
+                    {emoji}
+                  </span>
+                  <span className="msg-gift-text">
+                    <strong>{mine ? 'You sent' : `${peer.displayName} sent`}</strong> {rest.join(' ')}
+                    <small>
+                      <CoinIcon size={12} /> {(message.giftCoins ?? 0).toLocaleString()}
+                    </small>
+                  </span>
+                </div>
+              )
+            }
             const translation = mine ? undefined : translator.lookup(message.text)
             return (
               <div key={message.id} className={`msg ${mine ? 'msg--mine' : 'msg--theirs'}`}>
@@ -294,7 +335,7 @@ export function ChatThread({ me, conversation, onBack, onChanged }: Props) {
             <ul className="dm-gift-list">
               {QUICK_GIFTS.map((gift) => (
                 <li key={gift.name}>
-                  <button type="button" onClick={() => comingSoon(`${gift.name} (${gift.coins} coins)`)} aria-label={`Send ${gift.name} for ${gift.coins} coins`}>
+                  <button type="button" onClick={() => sendGift(gift)} disabled={giftBusy} aria-label={`Send ${gift.name} for ${gift.coins} coins`}>
                     <span className="dm-gift-emoji" aria-hidden="true">
                       {gift.emoji}
                     </span>
@@ -383,7 +424,7 @@ export function ChatThread({ me, conversation, onBack, onChanged }: Props) {
               <Plus size={16} /> Create
             </button>
             <span className="gifts-balance">
-              <CoinIcon /> 0
+              <CoinIcon /> {coins.toLocaleString()}
             </span>
             <button type="button" className="dm-gifts-close" onClick={() => setGiftsOpen(false)} aria-label="Close gifts">
               ×
@@ -392,7 +433,7 @@ export function ChatThread({ me, conversation, onBack, onChanged }: Props) {
           <p className="gifts-category">Classic</p>
           <div className="dm-gifts-grid">
             {GIFTS.map((gift) => (
-              <button type="button" key={gift.name} className="gift" onClick={() => comingSoon(`${gift.name} (${gift.coins} coins)`)}>
+              <button type="button" key={gift.name} className="gift" onClick={() => sendGift(gift)} disabled={giftBusy}>
                 <span className="gift-emoji" aria-hidden="true">
                   {gift.emoji}
                 </span>
