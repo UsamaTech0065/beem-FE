@@ -274,7 +274,7 @@ function percentMore(pack: CoinPack): number {
 }
 
 function formatPrice(pack: CoinPack): string {
-  return new Intl.NumberFormat('en-GB', { style: 'currency', currency: pack.currency.toUpperCase() }).format(
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: pack.currency.toUpperCase() }).format(
     pack.amountCents / 100,
   )
 }
