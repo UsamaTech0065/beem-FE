@@ -1,7 +1,9 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
 import { LiveSessionProvider } from '@/components/beem/live-session'
+import { MaintenanceBadge } from '@/components/beem/maintenance-badge'
 import './globals.css'
+import './maintenance/maintenance.css'
 
 export const metadata: Metadata = {
   title: 'beem — Live connections, real moments',
@@ -44,6 +46,7 @@ export default function RootLayout({
       <body className="antialiased" suppressHydrationWarning>
         {/* The live room outlives the stream page so it can shrink to a mini player. */}
         <LiveSessionProvider>{children}</LiveSessionProvider>
+        <MaintenanceBadge />
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>

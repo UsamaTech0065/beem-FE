@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
+import { MAINTENANCE_COOKIE, bypassDigest, maintenanceAllows, maintenanceEnabled, safeEqual } from '@/lib/maintenance'
 import { accessTokenExpiresWithin, refreshSession } from '@/lib/refresh'
 import { ACCESS_COOKIE, REFRESH_COOKIE, clearSession, writeSession } from '@/lib/session-cookies'
 
@@ -14,6 +15,25 @@ import { ACCESS_COOKIE, REFRESH_COOKIE, clearSession, writeSession } from '@/lib
 const LEEWAY_SECONDS = 60
 
 export async function proxy(request: NextRequest): Promise<NextResponse> {
+  const { pathname } = request.nextUrl
+
+  // Maintenance mode: everyone sees the maintenance screen, and the API routes
+  // answer 503, unless this browser holds the developer cookie.
+  if (maintenanceEnabled() && !maintenanceAllows(pathname)) {
+    const proof = request.cookies.get(MAINTENANCE_COOKIE)?.value
+    const expected = await bypassDigest()
+    const developer = Boolean(proof && expected && safeEqual(proof, expected))
+    if (!developer) {
+      const headers = { 'retry-after': '600', 'cache-control': 'no-store' }
+      if (pathname.startsWith('/api/')) {
+        return NextResponse.json({ message: 'beem is down for maintenance. Please try again shortly.' }, { status: 503, headers })
+      }
+      return NextResponse.rewrite(new URL('/maintenance', request.url), { status: 503, headers })
+    }
+  }
+
+  // Route handlers manage their own cookies; only pages need the refresh below.
+  if (pathname.startsWith('/api/')) return NextResponse.next()
 
   const refreshToken = request.cookies.get(REFRESH_COOKIE)?.value
   if (!refreshToken) return NextResponse.next()
@@ -39,7 +59,7 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 }
 
 export const config = {
-  // Pages and their RSC requests only. Auth route handlers manage the cookies
-  // themselves, and static assets have no use for a session.
-  matcher: ['/((?!api/|_next/static|_next/image|.*\\.[\\w]+$).*)'],
+  // Pages, their RSC requests and the API routes (for maintenance mode).
+  // Static assets have no use for a session and stay reachable regardless.
+  matcher: ['/((?!_next/static|_next/image|.*\\.[\\w]+$).*)'],
 }

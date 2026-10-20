@@ -1,0 +1,24 @@
+.maint { display: grid; min-height: 100vh; min-height: 100dvh; place-content: center; justify-items: center; gap: 12px; padding: 32px 16px; text-align: center; }
+.maint-logo { width: 96px; height: 96px; margin-bottom: 10px; animation: maint-bob 2.4s ease-in-out infinite; }
+@keyframes maint-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+.maint h1 { margin: 0; font-size: 32px; font-weight: 800; letter-spacing: -.02em; }
+.maint p { max-width: 420px; margin: 0; color: #6f6f7a; font-size: 16px; line-height: 1.5; }
+.maint-sub { font-size: 14px; }
+@media (max-width: 480px) { .maint h1 { font-size: 26px; } }
+
+/* developer door */
+.devgate { display: grid; min-height: 100vh; min-height: 100dvh; place-content: center; justify-items: center; gap: 10px; padding: 32px 16px; text-align: center; }
+.devgate h1 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -.02em; }
+.devgate p { max-width: 420px; margin: 0; color: #6f6f7a; font-size: 15px; line-height: 1.5; }
+.devgate-form { display: grid; width: min(100%, 340px); gap: 10px; margin-top: 8px; }
+.devgate-form input { width: 100%; border: 1px solid var(--border); border-radius: 12px; padding: 12px 15px; font: inherit; font-size: 16px; outline: none; }
+.devgate-form input:focus { border-color: var(--foreground); }
+.devgate-form button { height: 46px; border-radius: 999px; background: var(--foreground); color: var(--background); font-size: 15px; font-weight: 700; }
+.devgate-form button:disabled { opacity: .6; }
+.devgate-error { color: #b3123f; font-size: 14px; }
+.devgate small { color: #8e8e98; font-size: 13px; }
+
+/* badge shown to a developer browsing a site in maintenance */
+.maint-badge { position: fixed; bottom: calc(14px + env(safe-area-inset-bottom)); left: 50%; z-index: 95; display: flex; align-items: center; gap: 10px; transform: translateX(-50%); border-radius: 999px; background: #17171c; padding: 8px 8px 8px 14px; color: #fff; font-size: 13px; font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,.3); white-space: nowrap; }
+.maint-badge button { height: 28px; border-radius: 999px; background: rgba(255,255,255,.14); padding: 0 12px; color: #fff; font-size: 12px; font-weight: 700; }
+.maint-badge button:hover { background: rgba(255,255,255,.24); }
